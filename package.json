@@ -1,0 +1,23 @@
+{
+  "name": "nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-myconnection": "^1.0.4",
+    "express-session": "^1.18.2",
+    "morgan": "^1.10.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.15.3"
+  }
+}

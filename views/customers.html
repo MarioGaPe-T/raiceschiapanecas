@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Clientes – Panel Raíces Chiapanecas</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="panel-wrapper">
+    <div class="auth-card panel-card">
+      <div class="auth-inner">
+        <div class="panel-header">
+            <div class="panel-header-left">
+                <div class="auth-logo">RC</div>
+                <div>
+                <h1 class="auth-title">Clientes registrados</h1>
+                <p class="auth-subtitle">
+                    Administra los clientes: ver, actualizar y eliminar registros.
+                </p>
+                </div>
+            </div>
+
+            <button id="logoutBtn" class="btn btn-logout">
+                Cerrar sesión
+            </button>
+            </div>
+        <div class="panel-layout">
+          <!-- ==== Tabla de clientes ==== -->
+          <div class="panel-table-container">
+            <table class="customers-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Correo</th>
+                  <th>Teléfono</th>
+                  <th>Creado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="customersBody">
+                <!-- Filas generadas por JS -->
+              </tbody>
+            </table>
+
+            <div id="panelMessage" class="auth-message" style="display:none;"></div>
+          </div>
+
+          <!-- ==== Formulario de edición ==== -->
+          <div class="panel-form-container">
+            <h2 class="panel-form-title">Editar cliente</h2>
+            <p class="panel-form-subtitle">
+              Selecciona un cliente de la tabla para cargar sus datos aquí.
+            </p>
+
+            <form id="editForm">
+              <input type="hidden" id="edit_id">
+
+              <div class="auth-field">
+                <label class="auth-label" for="edit_full_name">Nombre completo</label>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="edit_full_name"
+                  required
+                >
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="edit_email">Correo electrónico</label>
+                <input
+                  class="auth-input"
+                  type="email"
+                  id="edit_email"
+                  required
+                >
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="edit_phone">Teléfono</label>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="edit_phone"
+                >
+              </div>
+
+              <button class="auth-button" type="submit">
+                Guardar cambios
+              </button>
+            </form>
+
+            <div class="panel-mini-info">
+              <small>
+                * Para crear nuevos clientes usar la pantalla de
+                <a class="auth-link" href="/register">registro</a>.
+              </small>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const customersBody = document.getElementById('customersBody');
+    const panelMessage = document.getElementById('panelMessage');
+
+    const editForm = document.getElementById('editForm');
+    const editId = document.getElementById('edit_id');
+    const editFullName = document.getElementById('edit_full_name');
+    const editEmail = document.getElementById('edit_email');
+    const editPhone = document.getElementById('edit_phone');
+
+    // ==== Helpers de mensajes ====
+    function showPanelMessage(type, text) {
+      panelMessage.style.display = 'block';
+      panelMessage.className = 'auth-message ' + (type === 'error' ? 'error' : 'success');
+      panelMessage.textContent = text;
+    }
+
+    function clearPanelMessage() {
+      panelMessage.style.display = 'none';
+      panelMessage.textContent = '';
+    }
+
+    // ==== Cargar lista de clientes ====
+    async function loadCustomers() {
+      clearPanelMessage();
+      customersBody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+
+      try {
+        const res = await fetch('/customers');
+        const data = await res.json();
+
+        customersBody.innerHTML = '';
+
+        if (!Array.isArray(data) || data.length === 0) {
+          customersBody.innerHTML = '<tr><td colspan="6">No hay clientes registrados.</td></tr>';
+          return;
+        }
+
+        data.forEach((c) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${c.id}</td>
+            <td>${c.full_name || ''}</td>
+            <td>${c.email || ''}</td>
+            <td>${c.phone || ''}</td>
+            <td>${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</td>
+            <td class="actions">
+              <button class="btn btn-edit" data-id="${c.id}">Editar</button>
+              <button class="btn btn-delete" data-id="${c.id}">Eliminar</button>
+            </td>
+          `;
+          customersBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+        customersBody.innerHTML = '<tr><td colspan="6">Error al cargar clientes.</td></tr>';
+        showPanelMessage('error', 'Error al cargar clientes desde el servidor.');
+      }
+    }
+
+    // ==== Cargar datos en el formulario de edición ====
+    function loadCustomerIntoForm(row) {
+      const id = row.children[0].textContent;
+      const full_name = row.children[1].textContent;
+      const email = row.children[2].textContent;
+      const phone = row.children[3].textContent;
+
+      editId.value = id;
+      editFullName.value = full_name;
+      editEmail.value = email;
+      editPhone.value = phone;
+    }
+
+    // ==== Manejo de clicks en los botones de la tabla (editar/eliminar) ====
+    customersBody.addEventListener('click', async (e) => {
+      const btn = e.target;
+
+      // Editar
+      if (btn.classList.contains('btn-edit')) {
+        const row = btn.closest('tr');
+        loadCustomerIntoForm(row);
+        clearPanelMessage();
+      }
+
+      // Eliminar
+      if (btn.classList.contains('btn-delete')) {
+        const id = btn.getAttribute('data-id');
+        const confirmar = window.confirm(`¿Seguro que deseas eliminar al cliente #${id}?`);
+        if (!confirmar) return;
+
+        try {
+          const res = await fetch(`/customers/${id}`, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            showPanelMessage('success', data.message || 'Cliente eliminado.');
+            // Volver a cargar la lista
+            loadCustomers();
+
+            // Si el que estaba en el formulario era ese, limpia el form
+            if (editId.value === id) {
+              editForm.reset();
+              editId.value = '';
+            }
+          } else {
+            showPanelMessage('error', data.error || 'No se pudo eliminar el cliente.');
+          }
+        } catch (err) {
+          console.error(err);
+          showPanelMessage('error', 'Error de conexión al eliminar el cliente.');
+        }
+      }
+    });
+
+    // ==== Guardar cambios (UPDATE) ====
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearPanelMessage();
+
+      const id = editId.value;
+      if (!id) {
+        showPanelMessage('error', 'Primero selecciona un cliente de la tabla.');
+        return;
+      }
+
+      const body = {
+        full_name: editFullName.value,
+        email: editEmail.value,
+        phone: editPhone.value
+      };
+
+      try {
+        const res = await fetch(`/customers/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showPanelMessage('success', data.message || 'Cliente actualizado correctamente.');
+          // Recargar la tabla para ver cambios
+          loadCustomers();
+        } else {
+          showPanelMessage('error', data.error || 'No se pudo actualizar el cliente.');
+        }
+      } catch (err) {
+        console.error(err);
+        showPanelMessage('error', 'Error de conexión al actualizar el cliente.');
+      }
+    });
+        // ==== Cerrar sesión desde el panel ====
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        const confirmar = window.confirm('¿Seguro que deseas cerrar sesión?');
+        if (!confirmar) return;
+
+        try {
+          const res = await fetch('/logout', {
+            method: 'POST'
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            // Opcional: mostrar mensaje rápido y luego redirigir
+            alert(data.message || 'Sesión cerrada.');
+            window.location.href = '/login';
+          } else {
+            alert(data.error || 'No se pudo cerrar sesión.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error de conexión al cerrar sesión.');
+        }
+      });
+    }
+
+
+    // ==== Inicializar ====
+    document.addEventListener('DOMContentLoaded', loadCustomers);
+  </script>
+</body>
+</html>
