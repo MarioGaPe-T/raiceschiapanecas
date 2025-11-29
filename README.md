@@ -83,7 +83,7 @@ En el schema.sql ya vienen dos usuarios creados en la tabla customers:
 
 * Cliente
   - Email: cliente@c.com
-  - Password: liente1
+  - Password: cliente1
   - Rol: customer
 
 Las contraseñas se guardan en la base de datos como password_hash usando bcrypt; los hashes ya están generados dentro del schema.sql.
