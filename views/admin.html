@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel admin – Raíces Chiapanecas</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="panel-wrapper">
+    <div class="auth-card panel-card">
+      <div class="auth-inner">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="auth-logo">RC</div>
+            <div>
+              <h1 class="auth-title">Panel de administración</h1>
+              <p class="auth-subtitle">
+                Gestiona catálogos y usuarios del proyecto.
+              </p>
+            </div>
+          </div>
+
+          <button id="logoutBtn" class="btn btn-logout">Cerrar sesión</button>
+        </div>
+
+        <div class="panel-layout" style="grid-template-columns: 1fr 1fr;">
+          <div class="panel-form-container">
+            <h2 class="panel-form-title">Catálogos principales</h2>
+            <ul style="list-style:none; padding-left:0; font-size:0.9rem;">
+              <li><a class="auth-link" href="/customers/panel">Clientes</a></li>
+              <li><a class="auth-link" href="/producers/panel">Productores</a></li>
+              <li><a class="auth-link" href="/products/panel">Productos</a></li>
+              <li><a class="auth-link" href="/categories/panel">Categorías</a></li>
+            </ul>
+          </div>
+
+          <div class="panel-form-container">
+            <h2 class="panel-form-title">Información</h2>
+            <p class="panel-form-subtitle">
+              Desde este panel puedes administrar los catálogos usados en el e-commerce.
+            </p>
+            <p class="panel-mini-info">
+              * Solo usuarios con rol <strong>admin</strong> pueden acceder a este panel.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Cerrar sesión
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        const confirmar = window.confirm('¿Seguro que deseas cerrar sesión?');
+        if (!confirmar) return;
+
+        try {
+          const res = await fetch('/logout', { method: 'POST' });
+          const data = await res.json();
+          if (res.ok) {
+            alert(data.message || 'Sesión cerrada.');
+            window.location.href = '/login';
+          } else {
+            alert(data.error || 'No se pudo cerrar sesión.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error de conexión al cerrar sesión.');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

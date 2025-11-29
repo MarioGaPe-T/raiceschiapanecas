@@ -10,20 +10,24 @@
     <div class="auth-card panel-card">
       <div class="auth-inner">
         <div class="panel-header">
-            <div class="panel-header-left">
-                <div class="auth-logo">RC</div>
-                <div>
-                <h1 class="auth-title">Clientes registrados</h1>
-                <p class="auth-subtitle">
-                    Administra los clientes: ver, actualizar y eliminar registros.
-                </p>
-                </div>
-            </div>
+  <div class="panel-header-left">
+    <div class="auth-logo">RC</div>
+    <div>
+      <h1 class="auth-title">Clientes registrados</h1>
+      <p class="auth-subtitle">
+        Administra los clientes: ver, actualizar y eliminar registros.
+      </p>
+    </div>
+  </div>
 
-            <button id="logoutBtn" class="btn btn-logout">
-                Cerrar sesión
-            </button>
-            </div>
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    <a href="/admin" class="btn btn-edit">Volver a admin</a>
+    <button id="logoutBtn" class="btn btn-logout">
+      Cerrar sesión
+    </button>
+  </div>
+</div>
+
         <div class="panel-layout">
           <!-- ==== Tabla de clientes ==== -->
           <div class="panel-table-container">

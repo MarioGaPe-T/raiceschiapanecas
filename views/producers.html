@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Productores – Panel Raíces Chiapanecas</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="panel-wrapper">
+    <div class="auth-card panel-card">
+      <div class="auth-inner">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="auth-logo">RC</div>
+            <div>
+              <h1 class="auth-title">Productores locales</h1>
+              <p class="auth-subtitle">
+                Administra productores: crear, editar y eliminar.
+              </p>
+            </div>
+          </div>
+
+          <a href="/admin" class="btn btn-edit">Volver a admin</a>
+          <button id="logoutBtn" class="btn btn-logout">Cerrar sesión</button>
+        </div>
+
+        <div class="panel-layout">
+          <!-- ==== Tabla de productores ==== -->
+          <div class="panel-table-container">
+            <table class="customers-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Región</th>
+                  <th>Teléfono</th>
+                  <th>Activo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="producersBody">
+                <!-- Filas generadas por JS -->
+              </tbody>
+            </table>
+
+            <div id="panelMessage" class="auth-message" style="display:none;"></div>
+          </div>
+
+          <!-- ==== Formulario create/update ==== -->
+          <div class="panel-form-container">
+            <h2 class="panel-form-title">Crear / Editar productor</h2>
+            <p class="panel-form-subtitle">
+              Llena el formulario para crear un nuevo productor o edita uno existente.
+            </p>
+
+            <form id="producerForm">
+              <input type="hidden" id="producer_id">
+
+              <div class="auth-field">
+                <label class="auth-label" for="name">Nombre</label>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="name"
+                  required
+                >
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="region">Región</label>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="region"
+                  placeholder="Ej. Altos de Chiapas"
+                >
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="phone">Teléfono</label>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="phone"
+                  placeholder="Ej. 9610000000"
+                >
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="contact_email">Correo de contacto</label>
+                <input
+                  class="auth-input"
+                  type="email"
+                  id="contact_email"
+                  placeholder="Ej. contacto@cooperativa.com"
+                >
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="description">Descripción</label>
+                <textarea
+                  class="auth-input"
+                  id="description"
+                  rows="3"
+                  placeholder="Cooperativa, tipo de producto, historia, etc."
+                ></textarea>
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="active">Activo</label>
+                <select id="active" class="auth-input">
+                  <option value="1">Sí</option>
+                  <option value="0">No</option>
+                </select>
+              </div>
+
+              <button class="auth-button" type="submit">
+                Guardar
+              </button>
+
+              <button
+                type="button"
+                id="btnResetForm"
+                class="btn"
+                style="margin-top:0.5rem;"
+              >
+                Limpiar formulario
+              </button>
+            </form>
+
+            <div class="panel-mini-info">
+              <small>
+                * Si seleccionas un productor en la tabla, sus datos se cargan aquí para edición.
+              </small>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const producersBody = document.getElementById('producersBody');
+    const panelMessage = document.getElementById('panelMessage');
+
+    const producerForm = document.getElementById('producerForm');
+    const producerId = document.getElementById('producer_id');
+    const nameInput = document.getElementById('name');
+    const regionInput = document.getElementById('region');
+    const phoneInput = document.getElementById('phone');
+    const emailInput = document.getElementById('contact_email');
+    const descInput = document.getElementById('description');
+    const activeSelect = document.getElementById('active');
+
+    const btnResetForm = document.getElementById('btnResetForm');
+
+    // ==== Helpers de mensajes ====
+    function showPanelMessage(type, text) {
+      panelMessage.style.display = 'block';
+      panelMessage.className = 'auth-message ' + (type === 'error' ? 'error' : 'success');
+      panelMessage.textContent = text;
+    }
+
+    function clearPanelMessage() {
+      panelMessage.style.display = 'none';
+      panelMessage.textContent = '';
+    }
+
+    // ==== Cargar lista de productores ====
+    async function loadProducers() {
+      clearPanelMessage();
+      producersBody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+
+      try {
+        const res = await fetch('/producers');
+        const data = await res.json();
+
+        producersBody.innerHTML = '';
+
+        if (!Array.isArray(data) || data.length === 0) {
+          producersBody.innerHTML = '<tr><td colspan="6">No hay productores registrados.</td></tr>';
+          return;
+        }
+
+        data.forEach((p) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.name || ''}</td>
+            <td>${p.region || ''}</td>
+            <td>${p.phone || ''}</td>
+            <td>${p.active ? 'Sí' : 'No'}</td>
+            <td class="actions">
+              <button class="btn btn-edit" data-id="${p.id}">Editar</button>
+              <button class="btn btn-delete" data-id="${p.id}">Eliminar</button>
+            </td>
+          `;
+          producersBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+        producersBody.innerHTML = '<tr><td colspan="6">Error al cargar productores.</td></tr>';
+        showPanelMessage('error', 'Error al cargar productores desde el servidor.');
+      }
+    }
+
+    // ==== Cargar datos en el formulario ====
+    function loadProducerIntoForm(row) {
+      const id = row.children[0].textContent;
+      const name = row.children[1].textContent;
+      const region = row.children[2].textContent;
+      const phone = row.children[3].textContent;
+      const activeText = row.children[4].textContent.trim();
+
+      producerId.value = id;
+      nameInput.value = name;
+      regionInput.value = region;
+      phoneInput.value = phone;
+      // El correo y descripción no vienen en la tabla, los puedes cargar con GET /producers/:id si quieres
+      activeSelect.value = activeText === 'Sí' ? '1' : '0';
+    }
+
+    // ==== Click en acciones (editar / eliminar) ====
+    producersBody.addEventListener('click', async (e) => {
+      const btn = e.target;
+
+      if (btn.classList.contains('btn-edit')) {
+        const row = btn.closest('tr');
+        loadProducerIntoForm(row);
+        clearPanelMessage();
+      }
+
+      if (btn.classList.contains('btn-delete')) {
+        const id = btn.getAttribute('data-id');
+        const confirmar = window.confirm(`¿Seguro que deseas eliminar al productor #${id}?`);
+        if (!confirmar) return;
+
+        try {
+          const res = await fetch(`/producers/${id}`, { method: 'DELETE' });
+          const data = await res.json();
+
+          if (res.ok) {
+            showPanelMessage('success', data.message || 'Productor eliminado.');
+            loadProducers();
+
+            if (producerId.value === id) {
+              producerForm.reset();
+              producerId.value = '';
+            }
+          } else {
+            showPanelMessage('error', data.error || 'No se pudo eliminar el productor.');
+          }
+        } catch (err) {
+          console.error(err);
+          showPanelMessage('error', 'Error de conexión al eliminar el productor.');
+        }
+      }
+    });
+
+    // ==== Guardar (CREATE o UPDATE) ====
+    producerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearPanelMessage();
+
+      const id = producerId.value;
+      const body = {
+        name: nameInput.value,
+        region: regionInput.value,
+        phone: phoneInput.value,
+        contact_email: emailInput.value,
+        description: descInput.value,
+        active: activeSelect.value === '1' ? 1 : 0
+      };
+
+      const url = id ? `/producers/${id}` : '/producers';
+      const method = id ? 'PUT' : 'POST';
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showPanelMessage('success', data.message || (id ? 'Productor actualizado.' : 'Productor creado.'));
+          loadProducers();
+          if (!id) {
+            producerForm.reset();
+            producerId.value = '';
+          }
+        } else {
+          showPanelMessage('error', data.error || 'No se pudo guardar el productor.');
+        }
+      } catch (err) {
+        console.error(err);
+        showPanelMessage('error', 'Error de conexión al guardar el productor.');
+      }
+    });
+
+    // ==== Limpiar formulario ====
+    btnResetForm.addEventListener('click', () => {
+      producerForm.reset();
+      producerId.value = '';
+      clearPanelMessage();
+    });
+
+    // ==== Cerrar sesión ====
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        const confirmar = window.confirm('¿Seguro que deseas cerrar sesión?');
+        if (!confirmar) return;
+
+        try {
+          const res = await fetch('/logout', { method: 'POST' });
+          const data = await res.json();
+          if (res.ok) {
+            alert(data.message || 'Sesión cerrada.');
+            window.location.href = '/login';
+          } else {
+            alert(data.error || 'No se pudo cerrar sesión.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error de conexión al cerrar sesión.');
+        }
+      });
+    }
+
+    // ==== Inicializar ====
+    document.addEventListener('DOMContentLoaded', loadProducers);
+  </script>
+</body>
+</html>

@@ -11,19 +11,18 @@ body {
   min-height: 100vh;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: radial-gradient(circle at top, #f5eee3, #c79d6a, #214232);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 1.5rem;
   color: #111827;
 }
 
-/* ===== Contenedor principal ===== */
-.auth-wrapper {
+/* Un contenedor general reutilizable para centrar contenido ancho máximo */
+.page-container {
+  max-width: 1100px;
   width: 100%;
-  max-width: 420px;
+  margin: 0 auto;
 }
 
+/* ===== Tarjeta base (login, panels, etc.) ===== */
 .auth-card {
   background: #f9fafb;
   border-radius: 1.25rem;
@@ -47,6 +46,14 @@ body {
 .auth-inner {
   position: relative;
   z-index: 1;
+}
+
+/* ===== Contenedor para centrar forms (login / register) ===== */
+.auth-wrapper {
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+  margin-top: 2rem;
 }
 
 /* ===== Títulos / “logo” ===== */
@@ -107,7 +114,7 @@ body {
   background: #ffffff;
 }
 
-/* ===== Botón ===== */
+/* ===== Botón principal ===== */
 .auth-button {
   width: 100%;
   padding: 0.7rem 0.75rem;
@@ -175,13 +182,6 @@ body {
   text-decoration: underline;
 }
 
-/* ===== Responsive pequeño ===== */
-@media (max-width: 480px) {
-  .auth-card {
-    padding: 1.8rem 1.5rem 1.5rem;
-  }
-}
-
 /* ===== Campo de contraseña con botón de mostrar/ocultar ===== */
 .password-wrapper {
   display: flex;
@@ -213,10 +213,11 @@ body {
   transform: translateY(0);
 }
 
-/* ===== Panel de administración de clientes ===== */
+/* ===== Panel de administración (clientes / catálogos) ===== */
 .panel-wrapper {
   width: 100%;
   max-width: 960px;
+  margin: 0 auto;
 }
 
 .panel-card {
@@ -263,7 +264,6 @@ body {
   background: #e5e7eb;
 }
 
-/* botones de acciones */
 .customers-table td.actions {
   white-space: nowrap;
 }
@@ -277,6 +277,7 @@ body {
   cursor: pointer;
   margin-right: 0.25rem;
   transition: opacity 0.12s, transform 0.08s;
+  background: #e5e7eb;
 }
 
 .btn:hover {
@@ -324,7 +325,6 @@ body {
   color: #6b7280;
 }
 
-/* Responsive: en pantallas pequeñas, form abajo de tabla */
 @media (max-width: 800px) {
   .panel-layout {
     grid-template-columns: 1fr;
@@ -345,11 +345,480 @@ body {
   gap: 0.75rem;
 }
 
-/* botón cerrar sesión reutiliza .btn pero con color distinto */
+/* botón cerrar sesión */
 .btn-logout {
-  background: #6b7280;  /* gris ahumado */
+  background: #6b7280;
   color: #f9fafb;
 }
 .btn-logout:hover {
   opacity: 0.9;
+}
+
+/* =========================================================
+   TIENDA PÚBLICA (HOME)
+   ========================================================= */
+
+/* Topbar fina tipo AbanteCart */
+.topbar {
+  background: rgba(249, 250, 251, 0.9);
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 0.75rem;
+}
+
+.topbar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.3rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+/* Header principal tipo tienda */
+.main-header {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto 1.25rem;
+  background: rgba(249, 250, 251, 0.96);
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.8rem 1rem;
+  display: grid;
+  grid-template-columns: 1.6fr 1.3fr 1.5fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.site-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.site-subtitle {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.header-search {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.cart-btn {
+  font-size: 0.8rem;
+}
+
+/* Zona de usuario en header */
+.shop-user {
+  font-size: 0.85rem;
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Hero (banner) */
+.hero {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto 1.25rem;
+  display: grid;
+  grid-template-columns: 1.5fr 1.2fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.hero-text {
+  background: rgba(249, 250, 251, 0.96);
+  border-radius: 1rem;
+  padding: 1.5rem 1.3rem;
+  border: 1px solid #e5e7eb;
+}
+
+.hero-text h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.hero-text p {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.hero-image {
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  background-image: radial-gradient(circle at top, #f5eee3, #c79d6a, #214232);
+}
+
+/* Barra de categorías */
+.category-bar {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.category-bar-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.category-pill {
+  border: none;
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  background: rgba(249, 250, 251, 0.9);
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+}
+
+.category-pill.active {
+  background: #214232;
+  color: #f9fafb;
+  border-color: #214232;
+}
+
+/* Lista de productos */
+.shop-main {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.shop-main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+
+.shop-main-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.shop-main-subtitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.shop-grid {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.9rem;
+}
+
+.product-card {
+  background: #f9fafb;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.9rem 0.95rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.product-price {
+  font-weight: 700;
+  color: #214232;
+  margin-bottom: 0.35rem;
+}
+
+.product-meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 0.4rem;
+}
+
+.product-description {
+  font-size: 0.85rem;
+  color: #374151;
+  margin-bottom: 0.4rem;
+}
+
+.product-card-footer .auth-button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   PERFIL USUARIO
+   ========================================================= */
+
+.profile-header {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-title-group h1 {
+  font-size: 1.6rem;
+  margin-bottom: 0.2rem;
+}
+
+.profile-title-group p {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Layout interno del perfil */
+.profile-wrapper {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1.3fr;
+  gap: 1.25rem;
+}
+
+.profile-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.profile-section-subtitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .main-header {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Header de tienda mejorado ===== */
+.main-header {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto 1.5rem;
+  display: grid;
+  grid-template-columns: 1.7fr 1.8fr 1.4fr;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(249, 250, 251, 0.96);
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Búsqueda proporcional */
+#searchForm {
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border-radius: 999px;
+  padding: 0.2rem 0.2rem 0.2rem 0.75rem;
+  border: 1px solid #d1d5db;
+}
+
+#searchInput {
+  border: none;
+  background: transparent;
+  flex: 1;
+  outline: none;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+#searchInput::placeholder {
+  color: #9ca3af;
+}
+
+/* Botón de buscar con altura similar al input */
+#searchForm button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #214232, #345a42);
+  color: #f9fafb;
+  cursor: pointer;
+}
+
+/* Links de iniciar sesión / crear cuenta bien separados */
+.header-right a {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #214232;
+  text-decoration: none;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+}
+
+.header-right a:hover {
+  background: #e5e7eb;
+}
+
+/* ===== Perfil mejorado (centrado y con tarjeta grande) ===== */
+
+.profile-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 2.5rem auto;
+}
+
+.profile-card {
+  background: #f9fafb;
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+  padding: 1.8rem 2rem 2rem;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.profile-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.profile-subtitle {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.profile-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Botón volver a la tienda estilo "ghost" */
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #214232;
+}
+
+/* Layout de columnas y secciones */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1.25rem;
+}
+
+.profile-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-section {
+  background: rgba(249, 250, 251, 0.96);
+  border-radius: 1rem;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border: 1px solid #e5e7eb;
+}
+
+.profile-section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.profile-section-subtitle {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .main-header {
+    grid-template-columns: 1fr;
+    border-radius: 1rem;
+  }
+
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    padding: 1.4rem 1.2rem 1.6rem;
+  }
 }

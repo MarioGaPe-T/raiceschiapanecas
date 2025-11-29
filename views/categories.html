@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Categorías – Panel Raíces Chiapanecas</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="panel-wrapper">
+    <div class="auth-card panel-card">
+      <div class="auth-inner">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="auth-logo">RC</div>
+            <div>
+              <h1 class="auth-title">Categorías</h1>
+              <p class="auth-subtitle">
+                Administra las categorías del catálogo (árbol padre/hijo).
+              </p>
+            </div>
+          </div>
+
+          <a href="/admin" class="btn btn-edit">Volver a admin</a>
+          <button id="logoutBtn" class="btn btn-logout">Cerrar sesión</button>
+        </div>
+
+        <div class="panel-layout">
+          <!-- ==== Tabla de categorías ==== -->
+          <div class="panel-table-container">
+            <table class="customers-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Slug</th>
+                  <th>Padre</th>
+                  <th>Creado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="categoriesBody">
+                <!-- Filas generadas por JS -->
+              </tbody>
+            </table>
+
+            <div id="panelMessage" class="auth-message" style="display:none;"></div>
+          </div>
+
+          <!-- ==== Formulario create/update ==== -->
+          <div class="panel-form-container">
+            <h2 class="panel-form-title">Crear / Editar categoría</h2>
+            <p class="panel-form-subtitle">
+              Define la jerarquía de categorías para tu catálogo.
+            </p>
+
+            <form id="categoryForm">
+              <input type="hidden" id="category_id">
+
+              <div class="auth-field">
+                <label class="auth-label" for="name">Nombre</label>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="name"
+                  required
+                >
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="slug">Slug (opcional)</label>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="slug"
+                  placeholder="ej. cafe, miel-orgánica"
+                >
+              </div>
+
+              <div class="auth-field">
+                <label class="auth-label" for="parent_id">Categoría padre</label>
+                <select id="parent_id" class="auth-input">
+                  <option value="">(Sin padre / raíz)</option>
+                  <!-- Opciones llenadas por JS -->
+                </select>
+              </div>
+
+              <button class="auth-button" type="submit">
+                Guardar
+              </button>
+
+              <button
+                type="button"
+                id="btnResetForm"
+                class="btn"
+                style="margin-top:0.5rem;"
+              >
+                Limpiar formulario
+              </button>
+            </form>
+
+            <div class="panel-mini-info">
+              <small>
+                * Evita crear ciclos (no pongas como padre una categoría hija de sí misma).
+              </small>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const categoriesBody = document.getElementById('categoriesBody');
+    const panelMessage = document.getElementById('panelMessage');
+
+    const categoryForm = document.getElementById('categoryForm');
+    const categoryId = document.getElementById('category_id');
+    const nameInput = document.getElementById('name');
+    const slugInput = document.getElementById('slug');
+    const parentSelect = document.getElementById('parent_id');
+
+    const btnResetForm = document.getElementById('btnResetForm');
+
+    // ==== Helpers de mensajes ====
+    function showPanelMessage(type, text) {
+      panelMessage.style.display = 'block';
+      panelMessage.className = 'auth-message ' + (type === 'error' ? 'error' : 'success');
+      panelMessage.textContent = text;
+    }
+
+    function clearPanelMessage() {
+      panelMessage.style.display = 'none';
+      panelMessage.textContent = '';
+    }
+
+    // ==== Cargar lista de categorías (tabla + select padre) ====
+    async function loadCategories() {
+      clearPanelMessage();
+      categoriesBody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+
+      try {
+        const res = await fetch('/categories', { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error('HTTP ' + res.status);
+        }
+
+        const data = await res.json();
+
+        // Tabla
+        categoriesBody.innerHTML = '';
+
+        if (!Array.isArray(data) || data.length === 0) {
+          categoriesBody.innerHTML = '<tr><td colspan="6">No hay categorías registradas.</td></tr>';
+        } else {
+          data.forEach((c) => {
+            const tr = document.createElement('tr');
+            tr.dataset.parentId = c.parent_id || '';
+            tr.innerHTML = `
+              <td>${c.id}</td>
+              <td>${c.name || ''}</td>
+              <td>${c.slug || ''}</td>
+              <td>${c.parent_name || '(sin padre)'}</td>
+              <td>${c.created_at ? new Date(c.created_at).toLocaleString() : ''}</td>
+              <td class="actions">
+                <button class="btn btn-edit" data-id="${c.id}">Editar</button>
+                <button class="btn btn-delete" data-id="${c.id}">Eliminar</button>
+              </td>
+            `;
+            categoriesBody.appendChild(tr);
+          });
+        }
+
+        // Select de padre
+        parentSelect.innerHTML = '<option value="">(Sin padre / raíz)</option>';
+        if (Array.isArray(data)) {
+          data.forEach((c) => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            parentSelect.appendChild(opt);
+          });
+        }
+
+      } catch (err) {
+        console.error(err);
+        categoriesBody.innerHTML = '<tr><td colspan="6">Error al cargar categorías.</td></tr>';
+        showPanelMessage('error', 'Error al cargar categorías desde el servidor.');
+      }
+    }
+
+    // ==== Cargar datos de una categoría en el formulario ====
+    function loadCategoryIntoForm(row) {
+      const id = row.children[0].textContent;
+      const name = row.children[1].textContent;
+      const slug = row.children[2].textContent;
+      const parentId = row.dataset.parentId || '';
+
+      categoryId.value = id;
+      nameInput.value = name;
+      slugInput.value = slug;
+      parentSelect.value = parentId || '';
+    }
+
+    // ==== Click en acciones (editar / eliminar) ====
+    categoriesBody.addEventListener('click', async (e) => {
+      const btn = e.target;
+
+      // Editar
+      if (btn.classList.contains('btn-edit')) {
+        const row = btn.closest('tr');
+        loadCategoryIntoForm(row);
+        clearPanelMessage();
+      }
+
+      // Eliminar
+      if (btn.classList.contains('btn-delete')) {
+        const id = btn.getAttribute('data-id');
+        const confirmar = window.confirm(`¿Seguro que deseas eliminar la categoría #${id}?`);
+        if (!confirmar) return;
+
+        try {
+          const res = await fetch(`/categories/${id}`, {
+            method: 'DELETE'
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            showPanelMessage('success', data.message || 'Categoría eliminada.');
+            loadCategories();
+
+            if (categoryId.value === id) {
+              categoryForm.reset();
+              categoryId.value = '';
+            }
+          } else {
+            showPanelMessage('error', data.error || 'No se pudo eliminar la categoría.');
+          }
+        } catch (err) {
+          console.error(err);
+          showPanelMessage('error', 'Error de conexión al eliminar la categoría.');
+        }
+      }
+    });
+
+    // ==== Guardar (CREATE o UPDATE) ====
+    categoryForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearPanelMessage();
+
+      const id = categoryId.value;
+      const body = {
+        name: nameInput.value,
+        slug: slugInput.value || null,
+        parent_id: parentSelect.value || null
+      };
+
+      if (!body.name) {
+        showPanelMessage('error', 'El nombre es obligatorio.');
+        return;
+      }
+
+      const url = id ? `/categories/${id}` : '/categories';
+      const method = id ? 'PUT' : 'POST';
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showPanelMessage('success', data.message || (id ? 'Categoría actualizada.' : 'Categoría creada.'));
+          loadCategories();
+          if (!id) {
+            categoryForm.reset();
+            categoryId.value = '';
+          }
+        } else {
+          showPanelMessage('error', data.error || 'No se pudo guardar la categoría.');
+        }
+      } catch (err) {
+        console.error(err);
+        showPanelMessage('error', 'Error de conexión al guardar la categoría.');
+      }
+    });
+
+    // ==== Limpiar formulario ====
+    btnResetForm.addEventListener('click', () => {
+      categoryForm.reset();
+      categoryId.value = '';
+      clearPanelMessage();
+    });
+
+    // ==== Cerrar sesión ====
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        const confirmar = window.confirm('¿Seguro que deseas cerrar sesión?');
+        if (!confirmar) return;
+
+        try {
+          const res = await fetch('/logout', { method: 'POST' });
+          const data = await res.json();
+          if (res.ok) {
+            alert(data.message || 'Sesión cerrada.');
+            window.location.href = '/login';
+          } else {
+            alert(data.error || 'No se pudo cerrar sesión.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error de conexión al cerrar sesión.');
+        }
+      });
+    }
+
+    // ==== Inicializar ====
+    document.addEventListener('DOMContentLoaded', loadCategories);
+  </script>
+</body>
+</html>
