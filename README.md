@@ -424,8 +424,7 @@ PUT /products/:id → actualiza producto (si no se envía slug, se puede generar
 
 DELETE /products/:id → elimina producto
 
-En el formulario de detalle se pueden subir imágenes que se guardan en product_images y en public/uploads/products/.
-
+En el formulario de detalle se pueden subir imágenes que se guardan en product_images y en public/uploads/products/
 
 #### 7.4.5 Gestión de pedidos y envíos (admin)
 
