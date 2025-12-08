@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestión de pedidos – Raíces Chiapanecas</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="panel-wrapper">
+    <div class="auth-card panel-card">
+      <div class="auth-inner">
+        <!-- Header -->
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="auth-logo">RC</div>
+            <div>
+              <h1 class="auth-title">Gestión de pedidos</h1>
+              <p class="auth-subtitle">
+                Revisa pedidos, estados de pago y de envío.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <button
+              id="backToAdminBtn"
+              class="btn btn-edit"
+              style="margin-right:0.4rem;"
+            >
+              Volver al panel
+            </button>
+            <button id="logoutBtn" class="btn btn-logout">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <!-- Usuario admin -->
+        <div class="panel-mini-info" id="adminUserInfo" style="margin-bottom:0.75rem;">
+          Cargando usuario...
+        </div>
+
+        <!-- Mensajes -->
+        <div id="ordersError" class="auth-message error" style="display:none;"></div>
+
+        <!-- Tabla de pedidos -->
+        <section class="panel-form-container" style="margin-top:0.75rem;">
+          <h2 class="panel-form-title">Pedidos</h2>
+          <p class="panel-form-subtitle">
+            Haz clic en un pedido para ver/editar detalles de envío.
+          </p>
+
+          <div id="ordersEmpty" class="auth-subtitle" style="display:none; margin-top:0.5rem;">
+            No hay pedidos registrados.
+          </div>
+
+          <div class="panel-table-container" style="margin-top:0.75rem;">
+            <table class="customers-table" id="adminOrdersTable" style="display:none;">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th>Estado pedido</th>
+                  <th>Estado envío</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="adminOrdersBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Utilidades ===
+
+    const SHIPMENT_STATUS_OPTIONS = [
+      { value: 'pending',          label: 'Pendiente de envío' },
+      { value: 'shipped',          label: 'Enviado' },
+      { value: 'out_for_delivery', label: 'En reparto' },
+      { value: 'delivered',        label: 'Entregado' },
+      { value: 'returned',         label: 'Devuelto' },
+      { value: 'lost',             label: 'Perdido' },
+    ]; // OJO: aquí ya NO está "processing"
+
+    function formatMoney(value) {
+      return '$' + Number(value || 0).toFixed(2) + ' MXN';
+    }
+
+    function translateOrderStatus(status) {
+      if (!status) return 'Desconocido';
+      const map = {
+        pending:   'Pendiente de pago',
+        paid:      'Pagado',
+        cancelled: 'Cancelado',
+      };
+      return map[status] || status;
+    }
+
+    function translateShipmentStatus(status) {
+      if (!status) return 'Sin envío';
+      const map = {
+        pending:          'Pendiente de envío',
+        processing:       'Preparando pedido',    // por si en algún momento lo usas
+        shipped:          'Enviado',
+        out_for_delivery: 'En reparto',
+        delivered:        'Entregado',
+        returned:         'Devuelto',
+        lost:             'Perdido',
+      };
+      return map[status] || status;
+    }
+
+    function showMessage(el, text, type = 'success') {
+      if (!el) return;
+      el.style.display = 'block';
+      el.className = 'auth-message ' + (type === 'error' ? 'error' : 'success');
+      el.textContent = text;
+    }
+
+    function clearMessage(el) {
+      if (!el) return;
+      el.style.display = 'none';
+      el.textContent = '';
+    }
+
+    function removeExistingDetails() {
+      document.querySelectorAll('.admin-order-details-row').forEach((row) => row.remove());
+    }
+
+    function buildShipmentStatusOptions(current) {
+      const cur = current || 'pending';
+      return SHIPMENT_STATUS_OPTIONS
+        .map((opt) => {
+          const selected = opt.value === cur ? 'selected' : '';
+          return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+        })
+        .join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const logoutBtn = document.getElementById('logoutBtn');
+      const backToAdminBtn = document.getElementById('backToAdminBtn');
+      const adminUserInfo = document.getElementById('adminUserInfo');
+
+      const ordersError = document.getElementById('ordersError');
+      const ordersEmpty = document.getElementById('ordersEmpty');
+      const ordersTable = document.getElementById('adminOrdersTable');
+      const ordersBody = document.getElementById('adminOrdersBody');
+
+      // === Navegación ===
+      if (backToAdminBtn) {
+        backToAdminBtn.addEventListener('click', () => {
+          window.location.href = '/admin/';
+        });
+      }
+
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+          const confirmar = window.confirm('¿Seguro que deseas cerrar sesión?');
+          if (!confirmar) return;
+
+          try {
+            const res = await fetch('/logout', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+              alert(data.message || 'Sesión cerrada.');
+              window.location.href = '/login';
+            } else {
+              alert(data.error || 'No se pudo cerrar sesión.');
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Error de conexión al cerrar sesión.');
+          }
+        });
+      }
+
+      // === Cargar info del admin ===
+      async function loadMe() {
+        try {
+          const res = await fetch('/me');
+          if (!res.ok) {
+            window.location.href = '/login';
+            return;
+          }
+          const data = await res.json();
+          if (!data.loggedIn || !data.user || data.user.role !== 'admin') {
+            window.location.href = '/login';
+            return;
+          }
+
+          const name =
+            data.user.full_name && data.user.full_name.trim() !== ''
+              ? data.user.full_name
+              : data.user.email;
+
+          adminUserInfo.textContent = 'Sesión iniciada como: ' + name + ' (admin)';
+        } catch (err) {
+          console.error(err);
+          adminUserInfo.textContent = 'Error al cargar usuario.';
+        }
+      }
+
+      // === Cargar lista de pedidos ===
+      async function loadOrders() {
+        ordersBody.innerHTML = '';
+        ordersTable.style.display = 'none';
+        ordersEmpty.style.display = 'none';
+        clearMessage(ordersError);
+        removeExistingDetails();
+
+        try {
+          const res = await fetch('/api/admin/orders');
+          if (res.status === 401 || res.status === 403) {
+            window.location.href = '/login';
+            return;
+          }
+
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            showMessage(ordersError, data.error || 'Error al cargar pedidos', 'error');
+            return;
+          }
+
+          const data = await res.json();
+          if (!Array.isArray(data) || data.length === 0) {
+            ordersEmpty.style.display = 'block';
+            return;
+          }
+
+          data.forEach((o) => {
+            const tr = document.createElement('tr');
+            tr.className = 'admin-order-row';
+            tr.dataset.orderId = o.id;
+
+            const dateStr = o.created_at
+              ? new Date(o.created_at).toLocaleString('es-MX')
+              : '';
+
+            const shipmentLabel = translateShipmentStatus(o.shipment_status);
+
+            tr.innerHTML = `
+              <td>#${o.id}</td>
+              <td>${dateStr}</td>
+              <td>${o.customer_name || 'Sin nombre'}</td>
+              <td>${translateOrderStatus(o.status)}</td>
+              <td>${shipmentLabel}</td>
+              <td>${formatMoney(o.grand_total || 0)}</td>
+            `;
+
+            tr.addEventListener('click', () => {
+              toggleAdminOrderDetails(o.id, tr);
+            });
+
+            ordersBody.appendChild(tr);
+          });
+
+          ordersTable.style.display = 'table';
+        } catch (err) {
+          console.error(err);
+          showMessage(ordersError, 'Error al cargar pedidos', 'error');
+        }
+      }
+
+      // === Mostrar / ocultar detalles de un pedido ===
+      async function toggleAdminOrderDetails(orderId, rowEl) {
+        // Si justo debajo ya hay detalles, lo cerramos (toggle)
+        const next = rowEl.nextElementSibling;
+        if (next && next.classList.contains('admin-order-details-row')) {
+          next.remove();
+          return;
+        }
+
+        // Cerramos cualquier otro detalle abierto
+        removeExistingDetails();
+        clearMessage(ordersError);
+
+        try {
+          const res = await fetch('/api/admin/orders/' + orderId);
+          if (!res.ok) {
+            let data = {};
+            try {
+              data = await res.json();
+            } catch (_) {}
+            showMessage(
+              ordersError,
+              data.error || 'Error al cargar detalle del pedido',
+              'error'
+            );
+            return;
+          }
+
+          const detail = await res.json();
+          const order    = detail.order    || {};
+          const customer = detail.customer || {};
+          const items    = detail.items    || [];
+          const shipment = detail.shipment || null;
+          const payment  = detail.payment || (detail.payments && detail.payments[0]) || null;
+
+          const detailTr = document.createElement('tr');
+          detailTr.className = 'admin-order-details-row';
+
+          const orderStatusLabel    = translateOrderStatus(order.status);
+          const shipmentStatusLabel = translateShipmentStatus(shipment && shipment.status);
+
+          const itemsHtml =
+            items.length === 0
+              ? '<p>No hay productos en este pedido.</p>'
+              : `
+                <table class="order-items-table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Cantidad</th>
+                      <th>Precio unitario</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${items
+                      .map((it) => {
+                        const qty = Number(it.quantity || 0);
+                        const up  = Number(it.unit_price || 0);
+                        const lineTotal = qty * up;
+                        return `
+                          <tr>
+                            <td>${it.product_name}</td>
+                            <td>${qty}</td>
+                            <td>${formatMoney(up)}</td>
+                            <td>${formatMoney(lineTotal)}</td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              `;
+
+          const shipmentStatusOptions = buildShipmentStatusOptions(
+            shipment && shipment.status
+          );
+
+          const paymentInfo = payment
+            ? `
+              <div class="admin-order-section">
+                <h3>Pago</h3>
+                <p>Método: <strong>${payment.method || 'N/A'}</strong></p>
+                <p>Monto: <strong>${formatMoney(payment.amount || 0)}</strong></p>
+                <p>Estado del pago: <strong>${payment.status || 'N/A'}</strong></p>
+              </div>
+            `
+            : '';
+
+          detailTr.innerHTML = `
+            <td colspan="6">
+              <div class="admin-order-details">
+                <div class="admin-order-details-header">
+                  <div>
+                    <div class="admin-order-title">Pedido #${order.id}</div>
+                    <div class="admin-order-subtitle">
+                      Cliente: <strong>${customer.full_name || 'Sin nombre'}</strong>
+                      ${customer.email ? ` · ${customer.email}` : ''}
+                    </div>
+                  </div>
+                  <div class="admin-order-status-block">
+                    <div>Estado del pedido: <strong>${orderStatusLabel}</strong></div>
+                    <div>Estado del envío: <strong>${shipmentStatusLabel}</strong></div>
+                    <div>Total: <strong>${formatMoney(order.grand_total || 0)}</strong></div>
+                  </div>
+                </div>
+
+                <div class="admin-order-details-body">
+                  <div class="admin-order-section">
+                    <h3>Productos del pedido</h3>
+                    ${itemsHtml}
+                  </div>
+
+                  <div class="admin-order-section">
+                    <h3>Envío</h3>
+                    <div class="admin-shipment-form">
+                      <label>
+                        Estado del envío
+                        <select id="shipment_status_${order.id}" class="auth-input">
+                          ${shipmentStatusOptions}
+                        </select>
+                      </label>
+                      <label>
+                        Código de rastreo
+                        <input
+                          type="text"
+                          id="shipment_tracking_${order.id}"
+                          class="auth-input"
+                          value="${(shipment && shipment.tracking_code) || ''}"
+                        />
+                      </label>
+                      <label>
+                        Paquetería
+                        <input
+                          type="text"
+                          id="shipment_carrier_${order.id}"
+                          class="auth-input"
+                          value="${(shipment && shipment.carrier) || ''}"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        class="auth-button admin-save-shipment-btn"
+                        data-order-id="${order.id}"
+                      >
+                        Guardar envío
+                      </button>
+                    </div>
+                  </div>
+
+                  ${paymentInfo}
+                </div>
+              </div>
+            </td>
+          `;
+
+          rowEl.parentNode.insertBefore(detailTr, rowEl.nextSibling);
+
+          // === Scroll suave hasta la sección de detalles ===
+          detailTr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+          // Listener para guardar envío
+          const saveShipmentBtn = detailTr.querySelector('.admin-save-shipment-btn');
+          if (saveShipmentBtn) {
+            saveShipmentBtn.addEventListener('click', (ev) => {
+              ev.stopPropagation(); // no colapsar la fila
+              const id = saveShipmentBtn.getAttribute('data-order-id');
+              updateShipment(id);
+            });
+          }
+        } catch (err) {
+          console.error(err);
+          showMessage(ordersError, 'Error al cargar detalle del pedido', 'error');
+        }
+      }
+
+      // === Actualizar envío ===
+      async function updateShipment(orderId) {
+        const statusSelect = document.getElementById('shipment_status_' + orderId);
+        const trackingInput = document.getElementById('shipment_tracking_' + orderId);
+        const carrierInput  = document.getElementById('shipment_carrier_' + orderId);
+
+        const body = {
+          shipment_status: statusSelect ? statusSelect.value : 'pending',
+          tracking_code: trackingInput ? trackingInput.value : '',
+          carrier: carrierInput ? carrierInput.value : '',
+        };
+
+        try {
+          const res = await fetch('/api/admin/orders/' + orderId + '/shipment', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            alert(data.error || 'No se pudo actualizar el envío');
+            return;
+          }
+
+          alert(data.message || 'Envío actualizado correctamente');
+          await loadOrders();
+        } catch (err) {
+          console.error(err);
+          alert('Error de conexión al actualizar el envío');
+        }
+      }
+
+      // === Inicio ===
+      (async () => {
+        await loadMe();
+        await loadOrders();
+      })();
+    });
+  </script>
+</body>
+</html>

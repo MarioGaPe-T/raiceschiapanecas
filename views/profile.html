@@ -3,53 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <title>Mi perfil – Raíces Chiapanecas</title>
-  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-  <div class="profile-page">
-    <div class="profile-card">
-      <div class="profile-header">
-        <div class="profile-header-left">
-          <div class="auth-logo">RC</div>
+  <div class="panel-wrapper">
+    <div class="auth-card panel-card">
+      <div class="auth-inner">
+        <!-- Header -->
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <div class="auth-logo">RC</div>
+            <div>
+              <h1 class="auth-title">Mi perfil</h1>
+              <p class="auth-subtitle">
+                Administra tus datos de cuenta, dirección de envío y pedidos.
+              </p>
+            </div>
+          </div>
+
           <div>
-            <h1 class="profile-title">Mi perfil</h1>
-            <p class="profile-subtitle">
-              Administra tus datos de cuenta y dirección de envío.
-            </p>
+            <button id="backToShopBtn" class="btn btn-edit" style="margin-right:0.4rem;">
+              Volver a la tienda
+            </button>
+            <button id="logoutBtn" class="btn btn-logout">Cerrar sesión</button>
           </div>
         </div>
 
-        <div class="profile-header-right">
-          <a href="/" class="btn btn-edit btn-ghost">Volver a la tienda</a>
-          <button id="logoutBtn" class="btn btn-logout">Cerrar sesión</button>
-        </div>
-      </div>
+        <!-- Mensaje general -->
+        <div id="profileMessage" class="auth-message" style="display:none;"></div>
 
-      <div id="profileMessage" class="auth-message" style="display:none;"></div>
-
-      <div class="profile-layout">
-        <!-- Columna izquierda: cuenta + dirección -->
-        <div class="profile-column">
-          <section class="profile-section">
-            <h2 class="profile-section-title">Datos de la cuenta</h2>
-            <p class="profile-section-subtitle">
+        <!-- Layout principal: datos de cuenta + contraseña -->
+        <div class="profile-layout" style="margin-top:1rem;">
+          <!-- Datos de cuenta -->
+          <section>
+            <h2 class="panel-form-title">Datos de la cuenta</h2>
+            <p class="panel-form-subtitle">
               Actualiza tu nombre, correo y teléfono.
             </p>
 
-            <form id="profileForm">
+            <form id="accountForm">
               <div class="auth-field">
                 <label class="auth-label" for="full_name">Nombre completo</label>
-                <input class="auth-input" type="text" id="full_name" required>
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="full_name"
+                  required
+                />
               </div>
 
               <div class="auth-field">
                 <label class="auth-label" for="email">Correo electrónico</label>
-                <input class="auth-input" type="email" id="email" required>
+                <input
+                  class="auth-input"
+                  type="email"
+                  id="email"
+                  required
+                />
               </div>
 
               <div class="auth-field">
                 <label class="auth-label" for="phone">Teléfono</label>
-                <input class="auth-input" type="text" id="phone">
+                <input
+                  class="auth-input"
+                  type="text"
+                  id="phone"
+                  placeholder="Opcional"
+                />
               </div>
 
               <button class="auth-button" type="submit">
@@ -58,69 +78,44 @@
             </form>
           </section>
 
-          <section class="profile-section">
-            <h2 class="profile-section-title">Dirección de envío</h2>
-            <p class="profile-section-subtitle">
-              Esta dirección se usará al momento de realizar tus compras.
-            </p>
-
-            <form id="addressForm">
-              <div class="auth-field">
-                <label class="auth-label" for="street">Calle y número</label>
-                <input class="auth-input" type="text" id="street" required>
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="city">Ciudad</label>
-                <input class="auth-input" type="text" id="city" required>
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="state">Estado</label>
-                <input class="auth-input" type="text" id="state" required>
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="postal_code">Código postal</label>
-                <input class="auth-input" type="text" id="postal_code" required>
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="country">País</label>
-                <input class="auth-input" type="text" id="country" value="México">
-              </div>
-
-              <button class="auth-button" type="submit">
-                Guardar dirección
-              </button>
-            </form>
-          </section>
-        </div>
-
-        <!-- Columna derecha: seguridad -->
-        <div class="profile-column">
-          <section class="profile-section">
-            <h2 class="profile-section-title">Seguridad</h2>
-            <p class="profile-section-subtitle">
+          <!-- Cambio de contraseña -->
+          <section>
+            <h2 class="panel-form-title">Seguridad</h2>
+            <p class="panel-form-subtitle">
               Cambia tu contraseña de acceso.
             </p>
 
             <form id="passwordForm">
               <div class="auth-field">
                 <label class="auth-label" for="current_password">Contraseña actual</label>
-                <input class="auth-input" type="password" id="current_password" required>
+                <input
+                  class="auth-input"
+                  type="password"
+                  id="current_password"
+                  required
+                />
               </div>
 
               <div class="auth-field">
                 <label class="auth-label" for="new_password">Nueva contraseña</label>
-                <input class="auth-input" type="password" id="new_password" required>
+                <input
+                  class="auth-input"
+                  type="password"
+                  id="new_password"
+                  required
+                  minlength="6"
+                />
               </div>
 
               <div class="auth-field">
-                <label class="auth-label" for="confirm_password">
-                  Confirmar nueva contraseña
-                </label>
-                <input class="auth-input" type="password" id="confirm_password" required>
+                <label class="auth-label" for="new_password_confirm">Confirmar nueva contraseña</label>
+                <input
+                  class="auth-input"
+                  type="password"
+                  id="new_password_confirm"
+                  required
+                  minlength="6"
+                />
               </div>
 
               <button class="auth-button" type="submit">
@@ -129,168 +124,196 @@
             </form>
           </section>
         </div>
+
+        <!-- Mensajes específicos -->
+        <div id="passwordMessage" class="auth-message" style="display:none; margin-top:0.75rem;"></div>
+
+        <!-- Dirección de envío -->
+        <section class="panel-form-container" style="margin-top:1.5rem;">
+          <h2 class="panel-form-title">Dirección principal de envío</h2>
+          <p class="panel-form-subtitle">
+            Esta dirección se usará por defecto al realizar pedidos.
+          </p>
+
+          <form id="addressForm">
+            <input type="hidden" id="address_id" />
+
+            <div class="auth-field">
+              <label class="auth-label" for="address_type">Tipo de dirección</label>
+              <select id="address_type" class="auth-input">
+                <option value="shipping">Envío</option>
+                <option value="billing">Facturación</option>
+              </select>
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="street">Calle y número</label>
+              <input
+                class="auth-input"
+                type="text"
+                id="street"
+                required
+              />
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="city">Ciudad / Municipio</label>
+              <input
+                class="auth-input"
+                type="text"
+                id="city"
+                required
+              />
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="state">Estado</label>
+              <input
+                class="auth-input"
+                type="text"
+                id="state"
+                required
+              />
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="postal_code">Código postal</label>
+              <input
+                class="auth-input"
+                type="text"
+                id="postal_code"
+                required
+              />
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="country">País</label>
+              <input
+                class="auth-input"
+                type="text"
+                id="country"
+                value="México"
+              />
+            </div>
+
+            <button class="auth-button" type="submit">
+              Guardar dirección
+            </button>
+          </form>
+
+          <div id="addressMessage" class="auth-message" style="display:none; margin-top:0.75rem;"></div>
+        </section>
+
+        <!-- Mis pedidos -->
+        <section class="panel-form-container" style="margin-top:1.5rem;">
+          <h2 class="panel-form-title">Mis pedidos</h2>
+          <p class="panel-form-subtitle">
+            Da clic en un pedido para ver el detalle, realizar el pago o cancelarlo.
+          </p>
+
+          <div id="ordersError" class="auth-message error" style="display:none;"></div>
+
+          <div id="ordersEmpty" class="auth-subtitle" style="display:none; margin-top:0.5rem;">
+            Aún no has realizado ningún pedido.
+          </div>
+
+          <div class="panel-table-container" style="margin-top:0.75rem;">
+            <table class="customers-table" id="ordersTable" style="display:none;">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fecha</th>
+                  <th>Estado pedido</th>
+                  <th>Estado envío</th>
+                  <th>Productos</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="ordersBody"></tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   </div>
 
   <script>
-    const profileMessage = document.getElementById('profileMessage');
-
-    function showProfileMessage(type, text) {
-      profileMessage.style.display = 'block';
-      profileMessage.className =
-        'auth-message ' + (type === 'error' ? 'error' : 'success');
-      profileMessage.textContent = text;
+    function formatMoney(value) {
+      return '$' + Number(value).toFixed(2) + ' MXN';
     }
 
-    function clearProfileMessage() {
-      profileMessage.style.display = 'none';
-      profileMessage.textContent = '';
-    }
-
-    // Cargar datos de perfil
-    async function loadProfile() {
-      try {
-        const res = await fetch('/api/profile');
-        if (res.status === 401) {
-          window.location.href = '/login';
-          return;
-        }
-        const data = await res.json();
-        document.getElementById('full_name').value = data.full_name || '';
-        document.getElementById('email').value = data.email || '';
-        document.getElementById('phone').value = data.phone || '';
-      } catch (err) {
-        console.error(err);
-        showProfileMessage('error', 'Error al cargar datos de perfil.');
-      }
-    }
-
-    // Cargar dirección
-    async function loadAddress() {
-      try {
-        const res = await fetch('/api/profile/address');
-        if (res.status === 401) {
-          window.location.href = '/login';
-          return;
-        }
-        const data = await res.json();
-        if (!data) return;
-
-        document.getElementById('street').value = data.street || '';
-        document.getElementById('city').value = data.city || '';
-        document.getElementById('state').value = data.state || '';
-        document.getElementById('postal_code').value = data.postal_code || '';
-        document.getElementById('country').value = data.country || 'México';
-      } catch (err) {
-        console.error(err);
-        showProfileMessage('error', 'Error al cargar la dirección.');
-      }
-    }
-
-    // Guardar perfil
-    const profileForm = document.getElementById('profileForm');
-    profileForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearProfileMessage();
-
-      const body = {
-        full_name: document.getElementById('full_name').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
+    function translateOrderStatus(status) {
+      if (!status) return 'Desconocido';
+      const map = {
+        pending: 'Pendiente de pago',
+        paid: 'Pagado',
+        cancelled: 'Cancelado',
       };
+      return map[status] || status;
+    }
 
-      try {
-        const res = await fetch('/api/profile', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          showProfileMessage('success', data.message || 'Perfil actualizado.');
-        } else {
-          showProfileMessage('error', data.error || 'No se pudo actualizar el perfil.');
-        }
-      } catch (err) {
-        console.error(err);
-        showProfileMessage('error', 'Error de conexión al actualizar el perfil.');
-      }
-    });
-
-    // Guardar dirección
-    const addressForm = document.getElementById('addressForm');
-    addressForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearProfileMessage();
-
-      const body = {
-        street: document.getElementById('street').value,
-        city: document.getElementById('city').value,
-        state: document.getElementById('state').value,
-        postal_code: document.getElementById('postal_code').value,
-        country: document.getElementById('country').value,
+    function translateShipmentStatus(status) {
+      if (!status) return 'Sin envío';
+      const map = {
+        pending: 'Pendiente de envío',
+        processing: 'Preparando pedido',
+        shipped: 'Enviado',
+        out_for_delivery: 'En reparto',
+        delivered: 'Entregado',
+        returned: 'Devuelto',
+        lost: 'Perdido',
       };
+      return map[status] || status;
+    }
 
-      try {
-        const res = await fetch('/api/profile/address', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          showProfileMessage('success', data.message || 'Dirección guardada.');
-        } else {
-          showProfileMessage('error', data.error || 'No se pudo guardar la dirección.');
-        }
-      } catch (err) {
-        console.error(err);
-        showProfileMessage('error', 'Error de conexión al guardar la dirección.');
+    document.addEventListener('DOMContentLoaded', () => {
+      const backToShopBtn = document.getElementById('backToShopBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      const profileMessage = document.getElementById('profileMessage');
+      const passwordMessage = document.getElementById('passwordMessage');
+      const addressMessage = document.getElementById('addressMessage');
+
+      const accountForm = document.getElementById('accountForm');
+      const passwordForm = document.getElementById('passwordForm');
+      const addressForm = document.getElementById('addressForm');
+
+      const fullNameInput = document.getElementById('full_name');
+      const emailInput = document.getElementById('email');
+      const phoneInput = document.getElementById('phone');
+
+      const currentPasswordInput = document.getElementById('current_password');
+      const newPasswordInput = document.getElementById('new_password');
+      const newPasswordConfirmInput = document.getElementById('new_password_confirm');
+
+      const addressIdInput = document.getElementById('address_id');
+      const addressTypeSelect = document.getElementById('address_type');
+      const streetInput = document.getElementById('street');
+      const cityInput = document.getElementById('city');
+      const stateInput = document.getElementById('state');
+      const postalCodeInput = document.getElementById('postal_code');
+      const countryInput = document.getElementById('country');
+
+      const ordersError = document.getElementById('ordersError');
+      const ordersEmpty = document.getElementById('ordersEmpty');
+      const ordersTable = document.getElementById('ordersTable');
+      const ordersBody = document.getElementById('ordersBody');
+
+      function showMessage(el, text, type = 'success') {
+        el.style.display = 'block';
+        el.className = 'auth-message ' + (type === 'error' ? 'error' : 'success');
+        el.textContent = text;
       }
-    });
 
-    // Cambiar contraseña
-    const passwordForm = document.getElementById('passwordForm');
-    passwordForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearProfileMessage();
-
-      const current_password =
-        document.getElementById('current_password').value;
-      const new_password = document.getElementById('new_password').value;
-      const confirm_password =
-        document.getElementById('confirm_password').value;
-
-      if (new_password !== confirm_password) {
-        showProfileMessage('error', 'La nueva contraseña y la confirmación no coinciden.');
-        return;
+      function clearMessage(el) {
+        el.style.display = 'none';
+        el.textContent = '';
       }
 
-      const body = { current_password, new_password };
+      backToShopBtn.addEventListener('click', () => {
+        window.location.href = '/';
+      });
 
-      try {
-        const res = await fetch('/api/profile/password', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          showProfileMessage('success', data.message || 'Contraseña actualizada.');
-          passwordForm.reset();
-        } else {
-          showProfileMessage('error', data.error || 'No se pudo actualizar la contraseña.');
-        }
-      } catch (err) {
-        console.error(err);
-        showProfileMessage('error', 'Error de conexión al actualizar la contraseña.');
-      }
-    });
-
-    // Cerrar sesión
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {
         const confirmar = window.confirm('¿Seguro que deseas cerrar sesión?');
         if (!confirmar) return;
@@ -300,7 +323,7 @@
           const data = await res.json();
           if (res.ok) {
             alert(data.message || 'Sesión cerrada.');
-            window.location.href = '/';
+            window.location.href = '/login';
           } else {
             alert(data.error || 'No se pudo cerrar sesión.');
           }
@@ -309,11 +332,454 @@
           alert('Error de conexión al cerrar sesión.');
         }
       });
-    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadProfile();
-      loadAddress();
+      async function loadProfile() {
+        try {
+          const res = await fetch('/api/profile');
+          if (res.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+
+          const data = await res.json();
+          fullNameInput.value = data.full_name || '';
+          emailInput.value = data.email || '';
+          phoneInput.value = data.phone || '';
+        } catch (err) {
+          console.error(err);
+          showMessage(profileMessage, 'Error al cargar datos de perfil', 'error');
+        }
+      }
+
+      async function loadAddress() {
+        try {
+          const res = await fetch('/api/profile/address');
+          if (res.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+
+          const data = await res.json();
+          if (!data) {
+            addressIdInput.value = '';
+            streetInput.value = '';
+            cityInput.value = '';
+            stateInput.value = '';
+            postalCodeInput.value = '';
+            // country ya trae "México"
+            return;
+          }
+
+          addressIdInput.value = data.id;
+          addressTypeSelect.value = data.type || 'shipping';
+          streetInput.value = data.street || '';
+          cityInput.value = data.city || '';
+          stateInput.value = data.state || '';
+          postalCodeInput.value = data.postal_code || '';
+          countryInput.value = data.country || 'México';
+        } catch (err) {
+          console.error(err);
+          showMessage(addressMessage, 'Error al cargar la dirección', 'error');
+        }
+      }
+
+      // Quita cualquier fila de detalles abierta
+      function removeExistingDetails() {
+        document.querySelectorAll('.order-details-row').forEach((row) => row.remove());
+      }
+
+      async function loadOrders() {
+        ordersBody.innerHTML = '';
+        ordersEmpty.style.display = 'none';
+        ordersTable.style.display = 'none';
+        clearMessage(ordersError);
+        removeExistingDetails();
+
+        try {
+          const res = await fetch('/api/my-orders');
+          if (res.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+
+          const data = await res.json();
+          if (!Array.isArray(data) || data.length === 0) {
+            ordersEmpty.style.display = 'block';
+            return;
+          }
+
+          data.forEach((o) => {
+            const tr = document.createElement('tr');
+            tr.className = 'order-row';
+            tr.dataset.orderId = o.id;
+
+            const dateStr = o.created_at
+              ? new Date(o.created_at).toLocaleString('es-MX')
+              : '';
+
+            const total = Number(o.grand_total || 0);
+            const itemsCount = o.items_count || 0;
+            const shipmentText = translateShipmentStatus(o.shipment_status);
+
+            tr.innerHTML = `
+              <td>#${o.id}</td>
+              <td>${dateStr}</td>
+              <td>${translateOrderStatus(o.status)}</td>
+              <td>${shipmentText}</td>
+              <td>${itemsCount}</td>
+              <td>${formatMoney(total)}</td>
+            `;
+
+            // Al hacer click en la fila → ver / ocultar detalles
+            tr.addEventListener('click', () => {
+              toggleOrderDetails(o.id, tr);
+            });
+
+            ordersBody.appendChild(tr);
+          });
+
+          ordersTable.style.display = 'table';
+        } catch (err) {
+          console.error(err);
+          showMessage(ordersError, 'Error al cargar tus pedidos', 'error');
+        }
+      }
+
+      async function toggleOrderDetails(orderId, rowEl) {
+        // Si ya hay detalles justo debajo, los quitamos (toggle)
+        const next = rowEl.nextElementSibling;
+        if (next && next.classList.contains('order-details-row')) {
+          next.remove();
+          return;
+        }
+
+        // Cerramos cualquier otro detalle abierto
+        removeExistingDetails();
+
+        try {
+          const res = await fetch('/api/my-orders/' + orderId);
+          let detail;
+          try {
+            detail = await res.json();
+          } catch (_) {
+            detail = null;
+          }
+
+          if (!res.ok || !detail) {
+            showMessage(
+              ordersError,
+              (detail && detail.error) || 'Error al cargar detalle del pedido',
+              'error'
+            );
+            return;
+          }
+
+          const order = detail.order;
+          const items = detail.items || [];
+          const shipment = detail.shipment || null;
+
+          const detailTr = document.createElement('tr');
+          detailTr.className = 'order-details-row';
+
+          const itemsHtml =
+            items.length === 0
+              ? '<p>No hay productos en este pedido.</p>'
+              : `
+                <table class="order-items-table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Cantidad</th>
+                      <th>Precio unitario</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${items
+                      .map((it) => {
+                        const qty = Number(it.quantity || 0);
+                        const up = Number(it.unit_price || 0);
+                        const lineTotal = qty * up;
+                        return `
+                          <tr>
+                            <td>${it.product_name}</td>
+                            <td>${qty}</td>
+                            <td>${formatMoney(up)}</td>
+                            <td>${formatMoney(lineTotal)}</td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              `;
+
+          const shipmentHtml = shipment
+            ? `
+              <div class="order-details-shipment" style="margin-top:0.75rem;">
+                <h4>Estado de envío</h4>
+                <p><strong>Estado:</strong> ${translateShipmentStatus(shipment.status)}</p>
+                ${
+                  shipment.tracking_code
+                    ? `<p><strong>Código de rastreo:</strong> ${shipment.tracking_code}</p>`
+                    : ''
+                }
+                ${
+                  shipment.carrier
+                    ? `<p><strong>Paquetería:</strong> ${shipment.carrier}</p>`
+                    : ''
+                }
+                ${
+                  shipment.updated_at
+                    ? `<p><small>Última actualización: ${new Date(
+                        shipment.updated_at
+                      ).toLocaleString('es-MX')}</small></p>`
+                    : ''
+                }
+              </div>
+            `
+            : `
+              <div class="order-details-shipment" style="margin-top:0.75rem;">
+                <h4>Estado de envío</h4>
+                <p>Sin información de envío todavía.</p>
+              </div>
+            `;
+
+          let actionsHtml = '';
+          if (order.status === 'pending') {
+            actionsHtml = `
+              <button
+                class="auth-button order-pay-btn"
+                data-id="${order.id}"
+                style="margin-right:0.5rem;"
+              >
+                PAGAR
+              </button>
+              <button
+                class="btn btn-delete order-cancel-btn"
+                data-id="${order.id}"
+              >
+                Cancelar pedido
+              </button>
+            `;
+          } else if (order.status === 'paid') {
+            actionsHtml = `
+              <button
+                class="btn btn-delete order-cancel-btn"
+                data-id="${order.id}"
+              >
+                Cancelar pedido
+              </button>
+            `;
+          }
+          // si está cancelled u otro estado, no hay acciones
+
+          detailTr.innerHTML = `
+            <td colspan="6">
+              <div class="order-details">
+                <div class="order-details-header">
+                  <strong>Pedido #${order.id}</strong> · Estado:
+                  <strong>${translateOrderStatus(order.status)}</strong><br>
+                  Total: <strong>${formatMoney(order.grand_total || 0)}</strong>
+                </div>
+                <div class="order-details-items" style="margin-top:0.5rem;">
+                  ${itemsHtml}
+                </div>
+                ${shipmentHtml}
+                <div class="order-details-actions" style="margin-top:0.75rem;">
+                  ${actionsHtml}
+                </div>
+              </div>
+            </td>
+          `;
+
+          rowEl.parentNode.insertBefore(detailTr, rowEl.nextSibling);
+
+          // Botón simular pago
+          const payBtn = detailTr.querySelector('.order-pay-btn');
+          if (payBtn) {
+            payBtn.addEventListener('click', (ev) => {
+              ev.stopPropagation(); // para que no colapse la fila
+              const id = payBtn.dataset.id;
+              simularPago(id);
+            });
+          }
+
+          // Botón cancelar
+          const cancelBtn = detailTr.querySelector('.order-cancel-btn');
+          if (cancelBtn) {
+            cancelBtn.addEventListener('click', (ev) => {
+              ev.stopPropagation();
+              const id = cancelBtn.dataset.id;
+              cancelarPedido(id);
+            });
+          }
+        } catch (err) {
+          console.error(err);
+          showMessage(ordersError, 'Error al cargar detalle del pedido', 'error');
+        }
+      }
+
+      // === Función para simular pago de un pedido ===
+      async function simularPago(orderId) {
+        if (!confirm('¿Deseas realizar el pago de este pedido?')) return;
+
+        try {
+          const res = await fetch('/api/payments/' + orderId + '/simulate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.error || 'No se pudo simular el pago');
+          }
+
+          alert('Pago realizado correctamente. Pedido ' + data.order_id + ' pagado.');
+          await loadOrders();
+        } catch (err) {
+          console.error(err);
+          alert(err.message);
+        }
+      }
+
+      // === Función para cancelar pedido ===
+      async function cancelarPedido(orderId) {
+        if (!confirm('¿Deseas cancelar este pedido?')) return;
+
+        try {
+          const res = await fetch('/api/my-orders/' + orderId + '/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.error || 'No se pudo cancelar el pedido');
+          }
+
+          alert(data.message || 'Pedido cancelado correctamente.');
+          await loadOrders();
+        } catch (err) {
+          console.error(err);
+          alert(err.message);
+        }
+      }
+
+      accountForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessage(profileMessage);
+
+        const body = {
+          full_name: fullNameInput.value,
+          email: emailInput.value,
+          phone: phoneInput.value,
+        };
+
+        try {
+          const res = await fetch('/api/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            showMessage(profileMessage, data.error || 'No se pudo actualizar el perfil', 'error');
+            return;
+          }
+
+          showMessage(profileMessage, data.message || 'Perfil actualizado correctamente');
+        } catch (err) {
+          console.error(err);
+          showMessage(profileMessage, 'Error de conexión al actualizar el perfil', 'error');
+        }
+      });
+
+      passwordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessage(passwordMessage);
+
+        if (newPasswordInput.value !== newPasswordConfirmInput.value) {
+          showMessage(passwordMessage, 'La nueva contraseña y su confirmación no coinciden', 'error');
+          return;
+        }
+
+        const body = {
+          current_password: currentPasswordInput.value,
+          new_password: newPasswordInput.value,
+        };
+
+        try {
+          const res = await fetch('/api/profile/password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            showMessage(passwordMessage, data.error || 'No se pudo actualizar la contraseña', 'error');
+            return;
+          }
+
+          showMessage(passwordMessage, data.message || 'Contraseña actualizada correctamente');
+          currentPasswordInput.value = '';
+          newPasswordInput.value = '';
+          newPasswordConfirmInput.value = '';
+        } catch (err) {
+          console.error(err);
+          showMessage(passwordMessage, 'Error de conexión al actualizar la contraseña', 'error');
+        }
+      });
+
+      addressForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearMessage(addressMessage);
+
+        const body = {
+          id: addressIdInput.value || undefined,
+          type: addressTypeSelect.value,
+          street: streetInput.value,
+          city: cityInput.value,
+          state: stateInput.value,
+          postal_code: postalCodeInput.value,
+          country: countryInput.value || 'México',
+        };
+
+        const method = addressIdInput.value ? 'PUT' : 'POST';
+
+        try {
+          const res = await fetch('/api/profile/address', {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            showMessage(addressMessage, data.error || 'No se pudo guardar la dirección', 'error');
+            return;
+          }
+
+          if (data.id) {
+            addressIdInput.value = data.id;
+          }
+
+          showMessage(addressMessage, data.message || 'Dirección guardada correctamente');
+        } catch (err) {
+          console.error(err);
+          showMessage(addressMessage, 'Error de conexión al guardar la dirección', 'error');
+        }
+      });
+
+      (async () => {
+        await loadProfile();
+        await loadAddress();
+        await loadOrders();
+      })();
     });
   </script>
 </body>

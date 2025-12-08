@@ -5,20 +5,6 @@
 --  - Otorga privilegios
 --  - Crea tablas principales
 --  - Inserta Datos
-
--- Probado en XAMPP(LAMPP) for Linux 8.2.12-0:
--- Apache 2.4.58
--- MariaDB 10.4.32
--- PHP 8.2.12
--- phpMyAdmin 5.2.1
--- Ejecucion: /opt/lampp/bin/mysql -u root -p < db/schema.sql
--- 
--- Probado en XAMPP for Windows 8.2.12-0:
--- Apache 2.4.58
--- MariaDB 10.4.32
--- PHP 8.2.12
--- phpMyAdmin 5.2.1
--- Ejecución: "C:\xampp\mysql\bin\mysql.exe" --binary-mode=1 -u root -p < schema.sql
 -- ===========================================
 -- 1) Base de datos
 DROP DATABASE IF EXISTS raiceschiapanecas;
@@ -113,7 +99,6 @@ CREATE TABLE customers (
   created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-
 -- 4.7 Direcciones (envío/facturación)
 CREATE TABLE addresses (
   id            INT AUTO_INCREMENT PRIMARY KEY,
@@ -206,26 +191,38 @@ CREATE TABLE payments (
   method        ENUM('card','transfer','oxxo','cash','other') NOT NULL,
   amount        DECIMAL(10,2) NOT NULL,
   status        ENUM('pending','authorized','paid','failed','refunded') NOT NULL DEFAULT 'pending',
-  reference     VARCHAR(120),       -- id de pasarela
+  reference     VARCHAR(120),       -- id de pasarela o referencia
   created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_pay_order
     FOREIGN KEY (order_id) REFERENCES orders(id)
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
--- 4.13 Envíos
+-- 4.13 Envíos (alineado con el frontend y el panel admin)
 CREATE TABLE shipments (
   id             INT AUTO_INCREMENT PRIMARY KEY,
   order_id       INT NOT NULL,
   carrier        VARCHAR(60),        -- DHL/FedEx/Estafeta, etc.
   tracking_code  VARCHAR(80),
-  status         ENUM('pending','in_transit','delivered','lost','returned') DEFAULT 'pending',
+  status ENUM(
+    'pending',
+    'processing',
+    'shipped',
+    'out_for_delivery',
+    'delivered',
+    'returned',
+    'lost'
+  ) NOT NULL DEFAULT 'pending',
+  notes          TEXT,
   shipped_at     DATETIME NULL,
   delivered_at   DATETIME NULL,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at     TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_ship_order
     FOREIGN KEY (order_id) REFERENCES orders(id)
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
+
 
 /* ===========================================
    5) DATOS
@@ -278,14 +275,14 @@ INSERT INTO producers (name, region, description, contact_email, phone) VALUES
    'info@raicessierra.mx',
    '9610000006');
 
--- NOTA: después de esto, los IDs quedan así:
+-- NOTA:
 -- categories:  1 = Café, 2 = Miel, 3 = Cacao, 4 = Textiles, 5 = Artesanías
 -- producers:   1..6 en el orden anterior
 
 
 /* ======================
    5.3 Productos
-   10 por categoría
+   SOLO 2 por categoría
    ====================== */
 
 -- 5.3.1 Café (category_id = 1)
@@ -304,64 +301,7 @@ VALUES
    'cafe-altura-500',
    'CAF-500',
    'Café de altura chiapaneco, notas de chocolate y nuez.',
-   180.00, 'active', 500),
-
-  (1, 1,
-   'Café molido para espresso 250g',
-   'cafe-espresso-250',
-   'CAF-ESP-250',
-   'Mezcla especial para espresso, molienda fina y crema intensa.',
-   135.00, 'active', 250),
-
-  (1, 6,
-   'Café orgánico en grano 500g',
-   'cafe-organico-500',
-   'CAF-ORG-500',
-   'Café orgánico certificado de pequeños productores de la Sierra.',
-   210.00, 'active', 500),
-
-  (1, 6,
-   'Café de olla con canela 250g',
-   'cafe-olla-canela-250',
-   'CAF-OLLA-250',
-   'Mezcla para café de olla con piloncillo y canela.',
-   110.00, 'active', 250),
-
-  (1, 1,
-   'Café descafeinado 250g',
-   'cafe-descafeinado-250',
-   'CAF-DEC-250',
-   'Café descafeinado suave, perfecto para la noche.',
-   125.00, 'active', 250),
-
-  (1, 1,
-   'Café tostado oscuro 1kg',
-   'cafe-oscuro-1000',
-   'CAF-OSC-1000',
-   'Café intenso tipo espresso, tostado oscuro.',
-   320.00, 'active', 1000),
-
-  (1, 6,
-   'Café con cardamomo 250g',
-   'cafe-cardamomo-250',
-   'CAF-CAR-250',
-   'Café con ligero toque de cardamomo, aroma especiado.',
-   140.00, 'active', 250),
-
-  (1, 1,
-   'Café gourmet selección especial 500g',
-   'cafe-gourmet-500',
-   'CAF-GOU-500',
-   'Selección de granos de especialidad de Chiapas.',
-   260.00, 'active', 500),
-
-  (1, 6,
-   'Café soluble artesanal 200g',
-   'cafe-soluble-200',
-   'CAF-SOL-200',
-   'Café soluble elaborado a partir de granos chiapanecos.',
-   150.00, 'active', 200);
-
+   180.00, 'active', 500);
 
 -- 5.3.2 Miel (category_id = 2)
 INSERT INTO products
@@ -379,64 +319,7 @@ VALUES
    'miel-multifloral-1000',
    'MIL-MULTI-1000',
    'Miel multifloral para uso familiar o negocio.',
-   220.00, 'active', 1000),
-
-  (2, 6,
-   'Miel orgánica 500g',
-   'miel-organica-500',
-   'MIL-ORG-500',
-   'Miel orgánica certificada, libre de agroquímicos.',
-   180.00, 'active', 500),
-
-  (2, 2,
-   'Miel de azahar 500g',
-   'miel-azahar-500',
-   'MIL-AZA-500',
-   'Miel monofloral de azahar, aroma cítrico suave.',
-   190.00, 'active', 500),
-
-  (2, 2,
-   'Miel cremosa 300g',
-   'miel-cremosa-300',
-   'MIL-CREM-300',
-   'Miel batida de textura cremosa, ideal para untar.',
-   120.00, 'active', 300),
-
-  (2, 2,
-   'Miel en panal 400g',
-   'miel-en-panales-400',
-   'MIL-PANAL-400',
-   'Panal de miel sellado, directo de la colmena.',
-   210.00, 'active', 400),
-
-  (2, 6,
-   'Miel con chipilín 250g',
-   'miel-chipilin-250',
-   'MIL-CHIP-250',
-   'Infusión de miel con chipilín, sabor típico chiapaneco.',
-   130.00, 'active', 250),
-
-  (2, 6,
-   'Miel con manzanilla 250g',
-   'miel-manzanilla-250',
-   'MIL-MANZ-250',
-   'Miel con extracto de manzanilla, ideal para infusiones.',
-   130.00, 'active', 250),
-
-  (2, 2,
-   'Polen de abeja 300g',
-   'miel-polen-300',
-   'MIL-POL-300',
-   'Granulado de polen de abeja, suplemento natural.',
-   160.00, 'active', 300),
-
-  (2, 2,
-   'Miel mezcla de campo 750g',
-   'miel-mezcla-campo-750',
-   'MIL-CAMP-750',
-   'Miel de distintas floraciones de la región.',
-   230.00, 'active', 750);
-
+   220.00, 'active', 1000);
 
 -- 5.3.3 Cacao (category_id = 3)
 INSERT INTO products
@@ -454,64 +337,7 @@ VALUES
    'cacao-tableta-leche-200',
    'CAC-TAB-LE-200',
    'Tabletas de cacao con leche, dulzor equilibrado.',
-   80.00, 'active', 200),
-
-  (3, 3,
-   'Cacao en polvo 500g',
-   'cacao-polvo-500',
-   'CAC-POL-500',
-   'Cacao en polvo sin azúcar, ideal para repostería.',
-   160.00, 'active', 500),
-
-  (3, 6,
-   'Cacao orgánico 250g',
-   'cacao-organico-250',
-   'CAC-ORG-250',
-   'Cacao orgánico molido, proveniente de la Sierra de Chiapas.',
-   110.00, 'active', 250),
-
-  (3, 3,
-   'Cacao puro en polvo 250g',
-   'cacao-org-puro-250',
-   'CAC-PUR-250',
-   'Cacao 100% puro, sin mezclas.',
-   115.00, 'active', 250),
-
-  (3, 3,
-   'Grano de cacao tostado 300g',
-   'cacao-grano-tostado-300',
-   'CAC-GRAN-300',
-   'Granos de cacao tostados listos para moler o infusionar.',
-   140.00, 'active', 300),
-
-  (3, 6,
-   'Bebida instantánea de cacao 400g',
-   'cacao-bebida-instant-400',
-   'CAC-INST-400',
-   'Mezcla de cacao con panela, lista para disolver.',
-   150.00, 'active', 400),
-
-  (3, 3,
-   'Nibs de cacao 200g',
-   'cacao-nibs-200',
-   'CAC-NIBS-200',
-   'Trozos de cacao tostado, ideales para toppings y snacks.',
-   130.00, 'active', 200),
-
-  (3, 6,
-   'Mezcla cacao y café 300g',
-   'cacao-mix-cafe-300',
-   'CAC-MIX-300',
-   'Mezcla soluble de cacao con café de altura.',
-   145.00, 'active', 300),
-
-  (3, 3,
-   'Manteca de cacao 250g',
-   'cacao-manteca-250',
-   'CAC-MANT-250',
-   'Manteca de cacao para repostería y cosmética natural.',
-   170.00, 'active', 250);
-
+   80.00, 'active', 200);
 
 -- 5.3.4 Textiles (category_id = 4)
 INSERT INTO products
@@ -529,64 +355,7 @@ VALUES
    'textil-blusa-bordada-san-juan',
    'TXT-BLU-SJ',
    'Blusa de manta con bordado floral típico de San Juan Chamula.',
-   480.00, 'active', NULL),
-
-  (4, 4,
-   'Camino de mesa bordado',
-   'textil-camino-mesa-bordado',
-   'TXT-CAM-MESA',
-   'Camino de mesa con bordados geométricos de colores vivos.',
-   320.00, 'active', NULL),
-
-  (4, 4,
-   'Mantel grande con flores',
-   'textil-mantel-grande-flores',
-   'TXT-MANT-FLOR',
-   'Mantel grande para comedor, con flores bordadas a mano.',
-   780.00, 'active', NULL),
-
-  (4, 4,
-   'Funda de cojín geométrica',
-   'textil-funda-cojin-geom',
-   'TXT-FUN-COJ',
-   'Funda de cojín con patrones geométricos tradicionales.',
-   220.00, 'active', NULL),
-
-  (4, 4,
-   'Morral tejido en telar',
-   'textil-morral-telar',
-   'TXT-MORRAL',
-   'Morral de algodón tejido en telar de cintura, muy resistente.',
-   350.00, 'active', NULL),
-
-  (4, 4,
-   'Bolsa de mano chiapaneca',
-   'textil-bolsa-mano-chiapas',
-   'TXT-BOL-MANO',
-   'Bolsa de mano con aplicaciones textiles de Chiapas.',
-   390.00, 'active', NULL),
-
-  (4, 4,
-   'Juego de servilletas bordadas',
-   'textil-servilletas-bordadas',
-   'TXT-SERV-SET',
-   'Set de 6 servilletas con bordado artesanal.',
-   260.00, 'active', NULL),
-
-  (4, 4,
-   'Chal rosa Chiapas',
-   'textil-chal-rosa-chiapas',
-   'TXT-CHAL-ROS',
-   'Chal ligero color rosa con detalles en flecos.',
-   420.00, 'active', NULL),
-
-  (4, 4,
-   'Camisa de lino bordada',
-   'textil-camisa-lino-bordado',
-   'TXT-CAM-LINO',
-   'Camisa de lino con bordado discreto en el pecho.',
-   620.00, 'active', NULL);
-
+   480.00, 'active', NULL);
 
 -- 5.3.5 Artesanías (category_id = 5)
 INSERT INTO products
@@ -604,177 +373,41 @@ VALUES
    'artesanias-figuras-animales-madera',
    'ART-FIG-ANIM',
    'Figuras talladas en madera representando fauna chiapaneca.',
-   320.00, 'active', NULL),
-
-  (5, 5,
-   'Máscara de danza tradicional',
-   'artesanias-mascara-danza',
-   'ART-MAS-DAN',
-   'Máscara utilizada en danzas tradicionales de la región.',
-   450.00, 'active', NULL),
-
-  (5, 5,
-   'Portavasos de madera',
-   'artesanias-portavasos-madera',
-   'ART-PTV-MAD',
-   'Set de 4 portavasos tallados en madera.',
-   160.00, 'active', NULL),
-
-  (5, 5,
-   'Portallaves rústico',
-   'artesanias-portallaves-rustico',
-   'ART-PORT-LLAV',
-   'Portallaves de madera con detalles pintados a mano.',
-   210.00, 'active', NULL),
-
-  (5, 5,
-   'Llavero textil',
-   'artesanias-llavero-textil',
-   'ART-LLAV-TXT',
-   'Llavero con miniatura de textil bordado.',
-   70.00, 'active', NULL),
-
-  (5, 5,
-   'Colgante de pared artesanal',
-   'artesanias-colgante-pared',
-   'ART-COL-PAR',
-   'Colgante decorativo para pared con fibras naturales.',
-   290.00, 'active', NULL),
-
-  (5, 5,
-   'Portavelas de barro',
-   'artesanias-portavelas-barro',
-   'ART-PORT-VEL',
-   'Portavelas de barro con perforaciones decorativas.',
-   190.00, 'active', NULL),
-
-  (5, 5,
-   'Caja bordada para joyería',
-   'artesanias-caja-bordada',
-   'ART-CJ-BORD',
-   'Caja forrada con textil bordado para guardar accesorios.',
-   330.00, 'active', NULL),
-
-  (5, 5,
-   'Imanes decorativos Chiapas',
-   'artesanias-imanes-chiapas',
-   'ART-IMAN-CH',
-   'Set de imanes con motivos turísticos de Chiapas.',
-   120.00, 'active', NULL);
+   320.00, 'active', NULL);
 
 
 /* ======================
    5.4 Stock inicial
-   ====================== 
-*/
+   (2 productos por categoría)
+   ====================== */
 
 INSERT INTO stock (product_id, quantity)
 SELECT id, 80 FROM products WHERE slug = 'cafe-altura-250'
 UNION ALL
 SELECT id, 60 FROM products WHERE slug = 'cafe-altura-500'
 UNION ALL
-SELECT id, 50 FROM products WHERE slug = 'cafe-espresso-250'
-UNION ALL
-SELECT id, 40 FROM products WHERE slug = 'cafe-organico-500'
-UNION ALL
-SELECT id, 45 FROM products WHERE slug = 'cafe-olla-canela-250'
-UNION ALL
-SELECT id, 35 FROM products WHERE slug = 'cafe-descafeinado-250'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'cafe-oscuro-1000'
-UNION ALL
-SELECT id, 25 FROM products WHERE slug = 'cafe-cardamomo-250'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'cafe-gourmet-500'
-UNION ALL
-SELECT id, 40 FROM products WHERE slug = 'cafe-soluble-200'
-UNION ALL
-
 SELECT id, 70 FROM products WHERE slug = 'miel-multifloral-500'
 UNION ALL
 SELECT id, 50 FROM products WHERE slug = 'miel-multifloral-1000'
 UNION ALL
-SELECT id, 40 FROM products WHERE slug = 'miel-organica-500'
-UNION ALL
-SELECT id, 35 FROM products WHERE slug = 'miel-azahar-500'
-UNION ALL
-SELECT id, 45 FROM products WHERE slug = 'miel-cremosa-300'
-UNION ALL
-SELECT id, 25 FROM products WHERE slug = 'miel-en-panales-400'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'miel-chipilin-250'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'miel-manzanilla-250'
-UNION ALL
-SELECT id, 20 FROM products WHERE slug = 'miel-polen-300'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'miel-mezcla-campo-750'
-UNION ALL
-
 SELECT id, 40 FROM products WHERE slug = 'cacao-tableta-amargo-200'
 UNION ALL
 SELECT id, 40 FROM products WHERE slug = 'cacao-tableta-leche-200'
 UNION ALL
-SELECT id, 35 FROM products WHERE slug = 'cacao-polvo-500'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'cacao-organico-250'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'cacao-org-puro-250'
-UNION ALL
-SELECT id, 25 FROM products WHERE slug = 'cacao-grano-tostado-300'
-UNION ALL
-SELECT id, 35 FROM products WHERE slug = 'cacao-bebida-instant-400'
-UNION ALL
-SELECT id, 25 FROM products WHERE slug = 'cacao-nibs-200'
-UNION ALL
-SELECT id, 20 FROM products WHERE slug = 'cacao-mix-cafe-300'
-UNION ALL
-SELECT id, 20 FROM products WHERE slug = 'cacao-manteca-250'
-UNION ALL
-
 SELECT id, 15 FROM products WHERE slug = 'textil-rebozo-lana-chiapas'
 UNION ALL
 SELECT id, 20 FROM products WHERE slug = 'textil-blusa-bordada-san-juan'
 UNION ALL
-SELECT id, 18 FROM products WHERE slug = 'textil-camino-mesa-bordado'
-UNION ALL
-SELECT id, 10 FROM products WHERE slug = 'textil-mantel-grande-flores'
-UNION ALL
-SELECT id, 25 FROM products WHERE slug = 'textil-funda-cojin-geom'
-UNION ALL
-SELECT id, 20 FROM products WHERE slug = 'textil-morral-telar'
-UNION ALL
-SELECT id, 18 FROM products WHERE slug = 'textil-bolsa-mano-chiapas'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'textil-servilletas-bordadas'
-UNION ALL
-SELECT id, 15 FROM products WHERE slug = 'textil-chal-rosa-chiapas'
-UNION ALL
-SELECT id, 12 FROM products WHERE slug = 'textil-camisa-lino-bordado'
-UNION ALL
-
 SELECT id, 25 FROM products WHERE slug = 'artesanias-vasija-barro-negro'
 UNION ALL
-SELECT id, 20 FROM products WHERE slug = 'artesanias-figuras-animales-madera'
-UNION ALL
-SELECT id, 10 FROM products WHERE slug = 'artesanias-mascara-danza'
-UNION ALL
-SELECT id, 30 FROM products WHERE slug = 'artesanias-portavasos-madera'
-UNION ALL
-SELECT id, 18 FROM products WHERE slug = 'artesanias-portallaves-rustico'
-UNION ALL
-SELECT id, 50 FROM products WHERE slug = 'artesanias-llavero-textil'
-UNION ALL
-SELECT id, 20 FROM products WHERE slug = 'artesanias-colgante-pared'
-UNION ALL
-SELECT id, 22 FROM products WHERE slug = 'artesanias-portavelas-barro'
-UNION ALL
-SELECT id, 15 FROM products WHERE slug = 'artesanias-caja-bordada'
-UNION ALL
-SELECT id, 40 FROM products WHERE slug = 'artesanias-imanes-chiapas';
+SELECT id, 20 FROM products WHERE slug = 'artesanias-figuras-animales-madera';
+
+
+/* ======================
+   5.5 Usuarios de prueba
+   ====================== */
 
 INSERT INTO customers (full_name, email, phone, password_hash, role)
 VALUES
   ('Admin',   'admin@c.com',   '9610000000', '$2b$10$xhhyoG3YIgwgoF1LKxdJ9OthXu8pp/g2i8g8gvXAbUKxMuKj9ki7S', 'admin'),
-  ('Cliente',   'cliente@c.com', '9610000001', '$2b$10$0gktJFGetWe7KZTWyJdOieBUgW47fzQYB.50GgLLYcQLTwvy3kwoG', 'customer');
-
+  ('Cliente', 'cliente@c.com', '9610000001', '$2b$10$0gktJFGetWe7KZTWyJdOieBUgW47fzQYB.50GgLLYcQLTwvy3kwoG', 'customer');

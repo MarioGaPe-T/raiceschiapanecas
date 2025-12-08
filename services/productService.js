@@ -1,107 +1,107 @@
 // services/productService.js
 const Product = require('../models/product');
 
-// Helper para generar slug a partir del nombre
-function slugify(str) {
-  if (!str) return '';
-  return str
-    .toString()
+// Util para generar slug a partir del nombre
+function slugify(text) {
+  return String(text || '')
     .toLowerCase()
-    .trim()
-    // quitar acentos
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    // reemplazar cualquier cosa que no sea alfanumérico por -
+    .replace(/[\u0300-\u036f]/g, '') // quitar acentos
     .replace(/[^a-z0-9]+/g, '-')
-    // quitar guiones de los extremos
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 180);
 }
 
-// Obtener todos los productos (para admin o API interna)
-exports.getAll = (conn, callback) => {
+exports.getAll = (conn, cb) => {
   const sql = `
     SELECT
-      p.id,
-      p.category_id,
-      p.producer_id,
-      p.name,
-      p.slug,
-      p.sku,
-      p.description,
-      p.price,
-      p.status,
-      p.weight_grams,
-      p.created_at,
+      p.*,
       c.name  AS category_name,
-      pr.name AS producer_name
+      pr.name AS producer_name,
+      img.url AS primary_image_url,
+      s.quantity AS stock_quantity
     FROM products p
-    LEFT JOIN categories c ON p.category_id = c.id
-    LEFT JOIN producers  pr ON p.producer_id = pr.id
+    LEFT JOIN categories c   ON p.category_id = c.id
+    LEFT JOIN producers pr   ON p.producer_id = pr.id
+    LEFT JOIN product_images img
+      ON img.product_id = p.id AND img.is_primary = 1
+    LEFT JOIN stock s        ON s.product_id = p.id
     ORDER BY p.id ASC
   `;
 
   conn.query(sql, (err, rows) => {
-    if (err) return callback(err);
-
+    if (err) return cb(err);
     const products = rows.map(Product.fromRow);
-    callback(null, products);
+    cb(null, products);
   });
 };
 
-// Obtener un producto por id
-exports.getById = (conn, id, callback) => {
+exports.getMeta = (conn, cb) => {
+  const meta = { categories: [], producers: [] };
+
+  conn.query(
+    'SELECT id, name FROM categories ORDER BY name ASC',
+    (err, catRows) => {
+      if (err) return cb(err);
+
+      meta.categories = catRows;
+
+      conn.query(
+        'SELECT id, name FROM producers WHERE active = 1 ORDER BY name ASC',
+        (err2, prodRows) => {
+          if (err2) return cb(err2);
+
+          meta.producers = prodRows;
+          cb(null, meta);
+        }
+      );
+    }
+  );
+};
+
+exports.getById = (conn, id, cb) => {
   const sql = `
     SELECT
-      p.id,
-      p.category_id,
-      p.producer_id,
-      p.name,
-      p.slug,
-      p.sku,
-      p.description,
-      p.price,
-      p.status,
-      p.weight_grams,
-      p.created_at,
+      p.*,
       c.name  AS category_name,
-      pr.name AS producer_name
+      pr.name AS producer_name,
+      img.url AS primary_image_url,
+      s.quantity AS stock_quantity
     FROM products p
-    LEFT JOIN categories c ON p.category_id = c.id
-    LEFT JOIN producers  pr ON p.producer_id = pr.id
+    LEFT JOIN categories c   ON p.category_id = c.id
+    LEFT JOIN producers pr   ON p.producer_id = pr.id
+    LEFT JOIN product_images img
+      ON img.product_id = p.id AND img.is_primary = 1
+    LEFT JOIN stock s        ON s.product_id = p.id
     WHERE p.id = ?
     LIMIT 1
   `;
 
   conn.query(sql, [id], (err, rows) => {
-    if (err) return callback(err);
-    if (rows.length === 0) return callback(null, null);
-
+    if (err) return cb(err);
+    if (!rows.length) return cb(null, null);
     const product = Product.fromRow(rows[0]);
-    callback(null, product);
+    cb(null, product);
   });
 };
 
-// Crear producto
-exports.create = (conn, data, callback) => {
+exports.create = (conn, data, cb) => {
   const {
     category_id,
     producer_id,
     name,
-    slug,
     sku,
     description,
     price,
     status,
     weight_grams,
+    stock_quantity,
   } = data;
 
-  // Si no viene slug, lo generamos desde el nombre
-  const finalSlug =
-    (slug && slug.trim()) || slugify(name || '');
-
-  if (!finalSlug) {
-    return callback(new Error('El slug no puede ser vacío.'), null);
-  }
+  const slug = slugify(name);
+  const finalStatus = ['active', 'inactive', 'draft'].includes(status)
+    ? status
+    : 'active';
 
   const sql = `
     INSERT INTO products
@@ -109,115 +109,124 @@ exports.create = (conn, data, callback) => {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-  const params = [
-    category_id || null,
-    producer_id || null,
-    name,
-    finalSlug,
-    sku || null,
-    description || null,
-    price,
-    status || 'active',
-    weight_grams || null,
-  ];
+  conn.query(
+    sql,
+    [
+      category_id,
+      producer_id,
+      name,
+      slug,
+      sku,
+      description,
+      price,
+      finalStatus,
+      weight_grams,
+    ],
+    (err, result) => {
+      if (err) return cb(err);
 
-  conn.query(sql, params, (err, result) => {
-    if (err) return callback(err);
-    callback(null, result.insertId);
-  });
+      const productId = result.insertId;
+
+      // Si viene stock_quantity, lo insertamos/actualizamos
+      if (stock_quantity !== null && stock_quantity !== undefined) {
+        const stockSql = `
+          INSERT INTO stock (product_id, quantity)
+          VALUES (?, ?)
+          ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)
+        `;
+        conn.query(
+          stockSql,
+          [productId, stock_quantity],
+          (err2) => {
+            if (err2) return cb(err2);
+            cb(null, productId);
+          }
+        );
+      } else {
+        cb(null, productId);
+      }
+    }
+  );
 };
 
-// Actualizar producto
-exports.update = (conn, id, data, callback) => {
+exports.update = (conn, id, data, cb) => {
   const {
     category_id,
     producer_id,
     name,
-    slug,
     sku,
     description,
     price,
     status,
     weight_grams,
+    stock_quantity,
   } = data;
 
-  // Igual que en create: si slug no viene, lo regeneramos desde name
-  const finalSlug =
-    (slug && slug.trim()) || slugify(name || '');
-
-  if (!finalSlug) {
-    return callback(new Error('El slug no puede ser vacío.'), 0);
-  }
+  const slug = slugify(name);
+  const finalStatus = ['active', 'inactive', 'draft'].includes(status)
+    ? status
+    : 'active';
 
   const sql = `
     UPDATE products
     SET
-      category_id   = ?,
-      producer_id   = ?,
-      name          = ?,
-      slug          = ?,
-      sku           = ?,
-      description   = ?,
-      price         = ?,
-      status        = ?,
-      weight_grams  = ?
+      category_id  = ?,
+      producer_id  = ?,
+      name         = ?,
+      slug         = ?,
+      sku          = ?,
+      description  = ?,
+      price        = ?,
+      status       = ?,
+      weight_grams = ?
     WHERE id = ?
   `;
 
-  const params = [
-    category_id || null,
-    producer_id || null,
-    name,
-    finalSlug,
-    sku || null,
-    description || null,
-    price,
-    status || 'active',
-    weight_grams || null,
-    id,
-  ];
+  conn.query(
+    sql,
+    [
+      category_id,
+      producer_id,
+      name,
+      slug,
+      sku,
+      description,
+      price,
+      finalStatus,
+      weight_grams,
+      id,
+    ],
+    (err, result) => {
+      if (err) return cb(err);
 
-  conn.query(sql, params, (err, result) => {
-    if (err) return callback(err);
-    callback(null, result.affectedRows);
-  });
+      if (result.affectedRows === 0) return cb(null, 0);
+
+      if (stock_quantity !== null && stock_quantity !== undefined) {
+        const stockSql = `
+          INSERT INTO stock (product_id, quantity)
+          VALUES (?, ?)
+          ON DUPLICATE KEY UPDATE quantity = VALUES(quantity)
+        `;
+        conn.query(
+          stockSql,
+          [id, stock_quantity],
+          (err2) => {
+            if (err2) return cb(err2);
+            cb(null, result.affectedRows);
+          }
+        );
+      } else {
+        cb(null, result.affectedRows);
+      }
+    }
+  );
 };
 
-// Eliminar producto
-exports.remove = (conn, id, callback) => {
+exports.remove = (conn, id, cb) => {
   const sql = 'DELETE FROM products WHERE id = ?';
 
   conn.query(sql, [id], (err, result) => {
-    if (err) return callback(err);
-    callback(null, result.affectedRows);
-  });
-};
-
-// Para el panel de productos (categorías y productores activos)
-exports.getMeta = (conn, callback) => {
-  const sqlCategories = `
-    SELECT id, name
-    FROM categories
-    ORDER BY name ASC
-  `;
-
-  const sqlProducers = `
-    SELECT id, name
-    FROM producers
-    WHERE active = 1
-    ORDER BY name ASC
-  `;
-
-  conn.query(sqlCategories, (err, catRows) => {
-    if (err) return callback(err);
-
-    conn.query(sqlProducers, (err2, prodRows) => {
-      if (err2) return callback(err2);
-
-      callback(null, {
-        categories: catRows,
-        producers: prodRows,
-      });
-    });
+    if (err) return cb(err);
+    cb(null, result.affectedRows);
   });
 };

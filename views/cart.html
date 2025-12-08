@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi carrito – Raíces Chiapanecas</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-left">
+      <div class="auth-logo">RC</div>
+      <div>
+        <div class="site-title">Raíces Chiapanecas</div>
+        <div class="site-subtitle">
+          Café, miel, cacao, textiles y artesanías de productores locales.
+        </div>
+      </div>
+    </div>
+
+    <div class="header-search">
+      <span class="site-subtitle">Resumen de tu carrito</span>
+    </div>
+
+    <div class="header-right">
+      <div id="cartUserInfo" class="shop-user">Cargando...</div>
+      <button id="goShopBtn" class="btn cart-btn">Volver a la tienda</button>
+    </div>
+  </header>
+
+  <main class="shop-main cart-wrapper">
+    <div class="panel-card">
+      <div class="cart-header">
+        <div>
+          <h1 class="cart-title">Mi carrito</h1>
+          <p class="cart-subtitle">Revisa tus productos antes de finalizar la compra.</p>
+        </div>
+      </div>
+
+      <div id="cartMessage" class="auth-message" style="display:none;"></div>
+
+      <div class="cart-layout">
+        <section class="cart-items">
+          <div id="emptyCart" class="cart-empty" style="display:none;">
+            Tu carrito está vacío.  
+            <button id="emptyGoShop" class="auth-button" style="margin-top:0.75rem;">Ir a la tienda</button>
+          </div>
+
+          <div id="cartItemsContainer"></div>
+        </section>
+
+        <aside class="cart-summary">
+          <h2>Resumen de compra</h2>
+          <div class="cart-summary-row">
+            <span>Subtotal</span>
+            <span id="cartSubtotal">$0.00 MXN</span>
+          </div>
+          <div class="cart-summary-row">
+            <span>Envío</span>
+            <span id="cartShipping">$0.00 MXN</span>
+          </div>
+          <div class="cart-summary-row">
+            <span>Impuestos</span>
+            <span id="cartTax">$0.00 MXN</span>
+          </div>
+          <hr class="cart-divider">
+          <div class="cart-summary-row cart-summary-total">
+            <span>Total</span>
+            <span id="cartTotal">$0.00 MXN</span>
+          </div>
+
+          <p class="cart-note">
+            Usaremos tu dirección principal guardada en tu perfil.  
+            Puedes editarla desde <a href="/profile" class="auth-link">Mi perfil</a>.
+          </p>
+
+          <button id="checkoutBtn" class="auth-button">Finalizar compra</button>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const userInfoEl = document.getElementById('cartUserInfo');
+      const goShopBtn = document.getElementById('goShopBtn');
+      const emptyGoShop = document.getElementById('emptyGoShop');
+
+      const cartMessage = document.getElementById('cartMessage');
+      const emptyCart = document.getElementById('emptyCart');
+      const cartItemsContainer = document.getElementById('cartItemsContainer');
+
+      const subtotalEl = document.getElementById('cartSubtotal');
+      const shippingEl = document.getElementById('cartShipping');
+      const taxEl = document.getElementById('cartTax');
+      const totalEl = document.getElementById('cartTotal');
+      const checkoutBtn = document.getElementById('checkoutBtn');
+
+      goShopBtn.addEventListener('click', () => (window.location.href = '/'));
+      emptyGoShop.addEventListener('click', () => (window.location.href = '/'));
+
+      function formatMoney(value) {
+        return '$' + Number(value).toFixed(2) + ' MXN';
+      }
+
+      function showCartMessage(text, type = 'success') {
+        cartMessage.style.display = 'block';
+        cartMessage.className = 'auth-message ' + (type === 'error' ? 'error' : 'success');
+        cartMessage.textContent = text;
+      }
+
+      async function loadMe() {
+        const res = await fetch('/me');
+        const data = await res.json();
+
+        if (!data.loggedIn || !data.user) {
+          window.location.href = '/login';
+          return null;
+        }
+
+        const name = data.user.full_name?.trim() || data.user.email;
+        userInfoEl.textContent = 'Hola, ' + name;
+        return data.user;
+      }
+
+      function renderCart(cart) {
+        cartItemsContainer.innerHTML = '';
+
+        if (!cart.items || cart.items.length === 0) {
+          emptyCart.style.display = 'block';
+        } else {
+          emptyCart.style.display = 'none';
+
+          cart.items.forEach((item) => {
+            const row = document.createElement('article');
+            row.className = 'cart-item-card';
+
+            const imgHtml = item.image_url
+              ? `<img src="${item.image_url}" alt="${item.product_name}" class="cart-product-image">`
+              : `<div class="cart-image-placeholder">RC</div>`;
+
+            row.innerHTML = `
+              <div class="cart-item-left">
+                <div class="cart-item-image">${imgHtml}</div>
+                <div class="cart-item-info">
+                  <div class="cart-item-name">${item.product_name}</div>
+                  <div class="cart-item-meta">
+                    SKU: ${item.sku || 'N/A'}
+                  </div>
+                  <button class="btn btn-delete cart-remove-btn" data-id="${item.id}">Quitar</button>
+                </div>
+              </div>
+
+              <div class="cart-item-right">
+                <div class="cart-item-price">${formatMoney(item.unit_price)}</div>
+                <div class="cart-item-qty">
+                  <button class="btn cart-qty-btn" data-action="decrease" data-id="${item.id}">−</button>
+                  <input type="number" min="1" class="cart-qty-input" value="${item.quantity}" data-id="${item.id}">
+                  <button class="btn cart-qty-btn" data-action="increase" data-id="${item.id}">+</button>
+                </div>
+                <div class="cart-item-total">${formatMoney(item.line_total)}</div>
+              </div>
+            `;
+
+            cartItemsContainer.appendChild(row);
+          });
+        }
+
+        subtotalEl.textContent = formatMoney(cart.subtotal || 0);
+        shippingEl.textContent = formatMoney(cart.shipping_cost || 0);
+        taxEl.textContent = formatMoney(cart.tax_total || 0);
+        totalEl.textContent = formatMoney(cart.grand_total || 0);
+
+        attachItemHandlers();
+      }
+
+      function attachItemHandlers() {
+        const qtyInputs = document.querySelectorAll('.cart-qty-input');
+        const qtyBtns = document.querySelectorAll('.cart-qty-btn');
+        const removeBtns = document.querySelectorAll('.cart-remove-btn');
+
+        qtyBtns.forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const action = btn.getAttribute('data-action');
+            const input = document.querySelector('.cart-qty-input[data-id="' + id + '"]');
+            let current = parseInt(input.value, 10) || 1;
+            current = action === 'increase' ? current + 1 : current - 1;
+            if (current < 1) current = 1;
+            await updateItemQuantity(id, current);
+          });
+        });
+
+        qtyInputs.forEach((inp) => {
+          inp.addEventListener('change', async () => {
+            const id = inp.getAttribute('data-id');
+            let val = parseInt(inp.value, 10);
+            if (isNaN(val) || val < 1) val = 1;
+            await updateItemQuantity(id, val);
+          });
+        });
+
+        removeBtns.forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            if (!confirm('¿Quitar este producto del carrito?')) return;
+            try {
+              const res = await fetch('/api/cart/items/' + id, { method: 'DELETE' });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || 'No se pudo quitar el producto');
+              showCartMessage('Producto eliminado del carrito');
+              await loadCart();
+            } catch (err) {
+              console.error(err);
+              showCartMessage(err.message, 'error');
+            }
+          });
+        });
+      }
+
+      async function updateItemQuantity(itemId, quantity) {
+        try {
+          const res = await fetch('/api/cart/items/' + itemId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'No se pudo actualizar la cantidad');
+          showCartMessage('Cantidad actualizada');
+          await loadCart();
+        } catch (err) {
+          console.error(err);
+          showCartMessage(err.message, 'error');
+        }
+      }
+
+      async function loadCart() {
+        try {
+          const res = await fetch('/api/cart');
+          if (res.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+          const data = await res.json();
+          renderCart(data);
+        } catch (err) {
+          console.error(err);
+          showCartMessage('Error al cargar el carrito', 'error');
+        }
+      }
+
+      checkoutBtn.addEventListener('click', async () => {
+        try {
+          checkoutBtn.disabled = true;
+          checkoutBtn.textContent = 'Procesando compra...';
+
+          const res = await fetch('/api/cart/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payment_method: 'card' }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'No se pudo finalizar la compra');
+          showCartMessage('Compra realizada correctamente. ID de pedido: ' + data.order_id, 'success');
+          setTimeout(() => (window.location.href = '/profile'), 2000);
+        } catch (err) {
+          console.error(err);
+          showCartMessage(err.message, 'error');
+        } finally {
+          checkoutBtn.disabled = false;
+          checkoutBtn.textContent = 'Finalizar compra';
+        }
+      });
+
+      (async () => {
+        const user = await loadMe();
+        if (!user) return;
+        await loadCart();
+      })();
+    });
+  </script>
+</body>
+</html>

@@ -9,160 +9,80 @@
   <div class="panel-wrapper">
     <div class="auth-card panel-card">
       <div class="auth-inner">
-        <!-- Header con botón volver y logout -->
+
+        <!-- Header -->
         <div class="panel-header">
           <div class="panel-header-left">
             <div class="auth-logo">RC</div>
             <div>
               <h1 class="auth-title">Productos</h1>
               <p class="auth-subtitle">
-                Administra productos: crear, editar y eliminar.
+                Administra el catálogo, precios, stock e imágenes de los productos.
               </p>
             </div>
           </div>
-
-          <a href="/admin" class="btn btn-edit">Volver a admin</a>
-          <button id="logoutBtn" class="btn btn-logout">Cerrar sesión</button>
+          <div class="panel-header-right">
+            <a href="/admin" class="btn btn-edit">Volver a admin</a>
+            <button id="logoutBtn" class="btn btn-logout">Cerrar sesión</button>
+          </div>
         </div>
 
-        <div class="panel-layout">
-          <!-- ==== Tabla de productos ==== -->
-          <div class="panel-table-container">
-            <table class="customers-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Categoría</th>
-                  <th>Productor</th>
-                  <th>Precio</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="productsBody">
-                <!-- Filas generadas por JS -->
-              </tbody>
-            </table>
+        <!-- Toolbar -->
+        <div
+          class="panel-toolbar"
+          style="display:flex; gap:0.75rem; align-items:center; margin-bottom:1rem; flex-wrap:wrap;"
+        >
+          <input
+            id="searchInput"
+            class="auth-input"
+            type="text"
+            placeholder="Buscar por nombre, descripción, SKU, categoría o productor..."
+            style="flex: 1 1 240px;"
+          />
 
-            <div id="panelMessage" class="auth-message" style="display:none;"></div>
-          </div>
+          <select id="filterCategory" class="auth-input" style="flex:0 0 200px;">
+            <option value="all">Todas las categorías</option>
+          </select>
 
-          <!-- ==== Formulario create/update ==== -->
-          <div class="panel-form-container">
-            <h2 class="panel-form-title">Crear / Editar producto</h2>
-            <p class="panel-form-subtitle">
-              Llena el formulario para crear un nuevo producto o editar uno existente.
-            </p>
+          <select id="sortSelect" class="auth-input" style="flex:0 0 180px;">
+            <option value="newest">Más recientes</option>
+            <option value="name_asc">Nombre A–Z</option>
+            <option value="price_asc">Precio: menor a mayor</option>
+            <option value="price_desc">Precio: mayor a menor</option>
+          </select>
 
-            <form id="productForm">
-              <input type="hidden" id="product_id">
+          <button
+            id="btnAddProduct"
+            class="btn btn-edit"
+            style="white-space:nowrap;"
+          >
+            Agregar producto
+          </button>
+        </div>
 
-              <div class="auth-field">
-                <label class="auth-label" for="name">Nombre del producto</label>
-                <input
-                  class="auth-input"
-                  type="text"
-                  id="name"
-                  required
-                >
-              </div>
+        <!-- Tabla de productos -->
+        <div class="panel-table-container">
+          <table class="customers-table">
+            <thead>
+              <tr>
+                <th>Imagen</th>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>SKU</th>
+                <th>Categoría</th>
+                <th>Productor</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Stock</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productsBody">
+              <!-- Filas generadas por JS -->
+            </tbody>
+          </table>
 
-              <div class="auth-field">
-                <label class="auth-label" for="category_id">Categoría</label>
-                <select id="category_id" class="auth-input" required>
-                  <option value="">-- Selecciona categoría --</option>
-                </select>
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="producer_id">Productor (opcional)</label>
-                <select id="producer_id" class="auth-input">
-                  <option value="">-- Sin productor asignado --</option>
-                </select>
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="slug">Slug</label>
-                <input
-                  class="auth-input"
-                  type="text"
-                  id="slug"
-                  placeholder="ej. cafe-altura-500"
-                >
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="sku">SKU (opcional)</label>
-                <input
-                  class="auth-input"
-                  type="text"
-                  id="sku"
-                  placeholder="ej. CAF-500"
-                >
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="price">Precio</label>
-                <input
-                  class="auth-input"
-                  type="number"
-                  step="0.01"
-                  id="price"
-                  required
-                  placeholder="ej. 180.00"
-                >
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="status">Estado</label>
-                <select id="status" class="auth-input">
-                  <option value="active">Activo</option>
-                  <option value="inactive">Inactivo</option>
-                  <option value="draft">Borrador</option>
-                </select>
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="weight_grams">Peso (gramos, opcional)</label>
-                <input
-                  class="auth-input"
-                  type="number"
-                  id="weight_grams"
-                  placeholder="ej. 500"
-                >
-              </div>
-
-              <div class="auth-field">
-                <label class="auth-label" for="description">Descripción</label>
-                <textarea
-                  class="auth-input"
-                  id="description"
-                  rows="3"
-                  placeholder="Descripción corta del producto"
-                ></textarea>
-              </div>
-
-              <button class="auth-button" type="submit">
-                Guardar
-              </button>
-
-              <button
-                type="button"
-                id="btnResetForm"
-                class="btn"
-                style="margin-top:0.5rem;"
-              >
-                Limpiar formulario
-              </button>
-            </form>
-
-            <div class="panel-mini-info">
-              <small>
-                * Selecciona un producto en la tabla para cargar sus datos aquí.
-              </small>
-            </div>
-          </div>
+          <div id="panelMessage" class="auth-message" style="display:none;"></div>
         </div>
 
       </div>
@@ -170,24 +90,16 @@
   </div>
 
   <script>
-    const productsBody = document.getElementById('productsBody');
-    const panelMessage = document.getElementById('panelMessage');
+    const searchInput    = document.getElementById('searchInput');
+    const filterCategory = document.getElementById('filterCategory');
+    const sortSelect     = document.getElementById('sortSelect');
+    const btnAddProduct  = document.getElementById('btnAddProduct');
+    const productsBody   = document.getElementById('productsBody');
+    const panelMessage   = document.getElementById('panelMessage');
 
-    const productForm = document.getElementById('productForm');
-    const productId = document.getElementById('product_id');
-    const nameInput = document.getElementById('name');
-    const categorySelect = document.getElementById('category_id');
-    const producerSelect = document.getElementById('producer_id');
-    const slugInput = document.getElementById('slug');
-    const skuInput = document.getElementById('sku');
-    const priceInput = document.getElementById('price');
-    const statusSelect = document.getElementById('status');
-    const weightInput = document.getElementById('weight_grams');
-    const descInput = document.getElementById('description');
+    let allProducts   = [];
+    let allCategories = [];
 
-    const btnResetForm = document.getElementById('btnResetForm');
-
-    // ==== Helpers de mensajes ====
     function showPanelMessage(type, text) {
       panelMessage.style.display = 'block';
       panelMessage.className = 'auth-message ' + (type === 'error' ? 'error' : 'success');
@@ -199,135 +111,170 @@
       panelMessage.textContent = '';
     }
 
-    // ==== Cargar catálogos (categorías y productores activos) ====
+    // Cargar categorías para el filtro
     async function loadMeta() {
       try {
-        const res = await fetch('/products/meta', { cache: 'no-store' });
-        if (!res.ok) {
-          throw new Error('HTTP ' + res.status);
-        }
+        const res  = await fetch('/products/meta');
         const data = await res.json();
 
-        // Limpiar selects
-        categorySelect.innerHTML = '<option value="">-- Selecciona categoría --</option>';
-        producerSelect.innerHTML = '<option value="">-- Sin productor asignado --</option>';
+        allCategories = data.categories || [];
 
-        if (Array.isArray(data.categories)) {
-          data.categories.forEach((cat) => {
-            const opt = document.createElement('option');
-            opt.value = cat.id;
-            opt.textContent = cat.name;
-            categorySelect.appendChild(opt);
-          });
-        }
-
-        if (Array.isArray(data.producers)) {
-          data.producers.forEach((prod) => {
-            const opt = document.createElement('option');
-            opt.value = prod.id;
-            opt.textContent = prod.name;
-            producerSelect.appendChild(opt);
-          });
-        }
+        filterCategory.innerHTML = '<option value="all">Todas las categorías</option>';
+        allCategories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = String(cat.id);
+          opt.textContent = cat.name;
+          filterCategory.appendChild(opt);
+        });
       } catch (err) {
-        console.error(err);
-        showPanelMessage('error', 'Error al cargar datos de catálogos (categorías/productores).');
+        console.error('Error al cargar meta de productos:', err);
       }
     }
 
-    // ==== Cargar lista de productos ====
+    // Cargar productos
     async function loadProducts() {
       clearPanelMessage();
-      productsBody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+      productsBody.innerHTML = '<tr><td colspan="10">Cargando productos...</td></tr>';
 
       try {
-        const res = await fetch('/products', { cache: 'no-store' });
-        if (!res.ok) {
-          throw new Error('HTTP ' + res.status);
-        }
-
+        const res  = await fetch('/products');
         const data = await res.json();
-
-        productsBody.innerHTML = '';
-
-        if (!Array.isArray(data) || data.length === 0) {
-          productsBody.innerHTML = '<tr><td colspan="7">No hay productos registrados.</td></tr>';
-          return;
-        }
-
-        data.forEach((p) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${p.id}</td>
-            <td>${p.name || ''}</td>
-            <td>${p.category_name || ''}</td>
-            <td>${p.producer_name || ''}</td>
-            <td>$${p.price}</td>
-            <td>${p.status || ''}</td>
-            <td class="actions">
-              <button class="btn btn-edit" data-id="${p.id}">Editar</button>
-              <button class="btn btn-delete" data-id="${p.id}">Eliminar</button>
-            </td>
-          `;
-          productsBody.appendChild(tr);
-        });
+        allProducts = Array.isArray(data) ? data : [];
+        applyFilters();
       } catch (err) {
         console.error(err);
-        productsBody.innerHTML = '<tr><td colspan="7">Error al cargar productos.</td></tr>';
+        productsBody.innerHTML = '<tr><td colspan="10">Error al cargar productos.</td></tr>';
         showPanelMessage('error', 'Error al cargar productos desde el servidor.');
       }
     }
 
-    // ==== Cargar datos de un producto en el formulario ====
-    function loadProductIntoForm(row) {
-      const id = row.children[0].textContent;
-      const name = row.children[1].textContent;
-      const categoryName = row.children[2].textContent;
-      const producerName = row.children[3].textContent;
-      const price = row.children[4].textContent.replace('$', '').trim();
-      const status = row.children[5].textContent.trim();
+    // Aplicar búsqueda + filtros + orden
+    function applyFilters() {
+      const term    = searchInput.value.toLowerCase().trim();
+      const catId   = filterCategory.value;
+      const sortMode = sortSelect.value;
 
-      productId.value = id;
-      nameInput.value = name;
-      priceInput.value = price;
-      statusSelect.value = status || 'active';
+      let list = allProducts.slice();
 
-      // categoría y productor se seleccionan por ID usando meta si la tuviéramos en memoria
-      // (para algo más pro, podríamos pedir GET /products/:id y rellenar todo desde ahí)
-
-      // de momento solo limpiamos slug/sku/peso/desc al editar si no los tenemos
-      // (puedes mejorarlo luego con otro fetch)
-    }
-
-    // ==== Click en acciones (editar / eliminar) ====
-    productsBody.addEventListener('click', async (e) => {
-      const btn = e.target;
-
-      if (btn.classList.contains('btn-edit')) {
-        const row = btn.closest('tr');
-        loadProductIntoForm(row);
-        clearPanelMessage();
+      // Filtro de texto: nombre, descripción, SKU, categoría, productor
+      if (term) {
+        list = list.filter(p => {
+          const text = (
+            (p.name || '') + ' ' +
+            (p.description || '') + ' ' +
+            (p.sku || '') + ' ' +
+            (p.category_name || '') + ' ' +
+            (p.producer_name || '')
+          ).toLowerCase();
+          return text.includes(term);
+        });
       }
 
-      if (btn.classList.contains('btn-delete')) {
-        const id = btn.getAttribute('data-id');
+      // Filtro por categoría
+      if (catId !== 'all') {
+        list = list.filter(p => String(p.category_id) === String(catId));
+      }
+
+      // Orden
+      switch (sortMode) {
+        case 'name_asc':
+          list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+          break;
+        case 'price_asc':
+          list.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+          break;
+        case 'price_desc':
+          list.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+          break;
+        case 'newest':
+        default:
+          list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          break;
+      }
+
+      renderProducts(list);
+    }
+
+    // Pintar tabla
+    function renderProducts(list) {
+      productsBody.innerHTML = '';
+
+      if (!list.length) {
+        productsBody.innerHTML = '<tr><td colspan="10">No se encontraron productos.</td></tr>';
+        return;
+      }
+
+      list.forEach(p => {
+        const tr = document.createElement('tr');
+
+        const imgUrl = p.primary_image_url || '/img/product-placeholder.svg';
+        const stockQty = typeof p.stock_quantity !== 'undefined'
+          ? p.stock_quantity
+          : (p.stock || 0);
+
+        tr.innerHTML = `
+          <td>
+            <img
+              src="${imgUrl}"
+              alt="${p.name || ''}"
+              style="width:40px;height:40px;object-fit:cover;border-radius:0.35rem;"
+            >
+          </td>
+          <td>${p.id}</td>
+          <td>${p.name || ''}</td>
+          <td>${p.sku || ''}</td>
+          <td>${p.category_name || ''}</td>
+          <td>${p.producer_name || ''}</td>
+          <td>$${Number(p.price || 0).toFixed(2)}</td>
+          <td>${p.status || ''}</td>
+          <td>${stockQty}</td>
+          <td class="actions">
+            <button class="btn btn-edit" data-action="edit" data-id="${p.id}">
+              Editar
+            </button>
+            <button class="btn btn-delete" data-action="delete" data-id="${p.id}">
+              Eliminar
+            </button>
+          </td>
+        `;
+        productsBody.appendChild(tr);
+      });
+    }
+
+    // Eventos de búsqueda / filtros
+    searchInput.addEventListener('input', applyFilters);
+    filterCategory.addEventListener('change', applyFilters);
+    sortSelect.addEventListener('change', applyFilters);
+
+    // Botón "Agregar producto" → otra página
+    btnAddProduct.addEventListener('click', () => {
+      window.location.href = '/products/new';
+    });
+
+    // Acciones de la tabla
+    productsBody.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+
+      const action = btn.getAttribute('data-action');
+      const id     = btn.getAttribute('data-id');
+
+      if (action === 'edit') {
+        window.location.href = `/products/${id}/edit`;
+        return;
+      }
+
+      if (action === 'delete') {
         const confirmar = window.confirm(`¿Seguro que deseas eliminar el producto #${id}?`);
         if (!confirmar) return;
 
         try {
-          const res = await fetch(`/products/${id}`, {
-            method: 'DELETE'
-          });
+          const res  = await fetch(`/products/${id}`, { method: 'DELETE' });
           const data = await res.json();
 
           if (res.ok) {
-            showPanelMessage('success', data.message || 'Producto eliminado.');
-            loadProducts();
-
-            if (productId.value === id) {
-              productForm.reset();
-              productId.value = '';
-            }
+            showPanelMessage('success', data.message || 'Producto eliminado correctamente.');
+            await loadProducts();
           } else {
             showPanelMessage('error', data.error || 'No se pudo eliminar el producto.');
           }
@@ -338,68 +285,7 @@
       }
     });
 
-    // ==== Guardar (CREATE o UPDATE) ====
-    productForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearPanelMessage();
-
-      const id = productId.value;
-
-      const body = {
-        name: nameInput.value,
-        category_id: categorySelect.value,
-        producer_id: producerSelect.value || null,
-        slug: slugInput.value || null,
-        sku: skuInput.value || null,
-        description: descInput.value || null,
-        price: priceInput.value,
-        status: statusSelect.value,
-        weight_grams: weightInput.value || null
-      };
-
-      if (!body.name || !body.category_id || !body.price) {
-        showPanelMessage('error', 'Nombre, categoría y precio son obligatorios.');
-        return;
-      }
-
-      const url = id ? `/products/${id}` : '/products';
-      const method = id ? 'PUT' : 'POST';
-
-      try {
-        const res = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          showPanelMessage('success', data.message || (id ? 'Producto actualizado.' : 'Producto creado.'));
-          loadProducts();
-          if (!id) {
-            productForm.reset();
-            productId.value = '';
-          }
-        } else {
-          showPanelMessage('error', data.error || 'No se pudo guardar el producto.');
-        }
-      } catch (err) {
-        console.error(err);
-        showPanelMessage('error', 'Error de conexión al guardar el producto.');
-      }
-    });
-
-    // ==== Limpiar formulario ====
-    btnResetForm.addEventListener('click', () => {
-      productForm.reset();
-      productId.value = '';
-      clearPanelMessage();
-    });
-
-    // ==== Cerrar sesión ====
+    // Logout
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {
@@ -407,7 +293,7 @@
         if (!confirmar) return;
 
         try {
-          const res = await fetch('/logout', { method: 'POST' });
+          const res  = await fetch('/logout', { method: 'POST' });
           const data = await res.json();
           if (res.ok) {
             alert(data.message || 'Sesión cerrada.');
@@ -422,7 +308,7 @@
       });
     }
 
-    // ==== Inicializar ====
+    // Init
     document.addEventListener('DOMContentLoaded', async () => {
       await loadMeta();
       await loadProducts();

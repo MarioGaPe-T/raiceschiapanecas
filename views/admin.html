@@ -15,7 +15,7 @@
             <div>
               <h1 class="auth-title">Panel de administración</h1>
               <p class="auth-subtitle">
-                Gestiona catálogos y usuarios del proyecto.
+                Gestiona catálogos, pedidos y usuarios del proyecto.
               </p>
             </div>
           </div>
@@ -24,6 +24,7 @@
         </div>
 
         <div class="panel-layout" style="grid-template-columns: 1fr 1fr;">
+          <!-- Columna izquierda: catálogos y pedidos -->
           <div class="panel-form-container">
             <h2 class="panel-form-title">Catálogos principales</h2>
             <ul style="list-style:none; padding-left:0; font-size:0.9rem;">
@@ -31,13 +32,21 @@
               <li><a class="auth-link" href="/producers/panel">Productores</a></li>
               <li><a class="auth-link" href="/products/panel">Productos</a></li>
               <li><a class="auth-link" href="/categories/panel">Categorías</a></li>
+              <li style="margin-top:0.5rem;">
+                <!-- 👉 Enlace / botón hacia la gestión de pedidos -->
+                <a class="auth-link" href="/admin/orders">
+                  Gestión de pedidos
+                </a>
+              </li>
             </ul>
           </div>
 
+          <!-- Columna derecha: info -->
           <div class="panel-form-container">
             <h2 class="panel-form-title">Información</h2>
             <p class="panel-form-subtitle">
-              Desde este panel puedes administrar los catálogos usados en el e-commerce.
+              Desde este panel puedes administrar los catálogos usados en el e-commerce
+              y revisar el estado de los pedidos realizados por los clientes.
             </p>
             <p class="panel-mini-info">
               * Solo usuarios con rol <strong>admin</strong> pueden acceder a este panel.
