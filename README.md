@@ -426,6 +426,7 @@ DELETE /products/:id → elimina producto
 
 En el formulario de detalle se pueden subir imágenes que se guardan en product_images y en public/uploads/products/.
 
+
 #### 7.4.5 Gestión de pedidos y envíos (admin)
 
 GET /admin/orders
@@ -479,9 +480,11 @@ Al hacer clic en una fila, la página se desplaza suavemente hacia el bloque de 
 
 El encabezado de detalle resalta con un fondo diferenciado para distinguirlo del resto de filas.
 
+
 ## 8. Carrito, pedidos, pagos y envíos
 
 En esta versión del proyecto el flujo de compra está implementado de forma básica pero funcional.
+
 
 ### 8.1 Carrito de compras
 
@@ -506,6 +509,7 @@ Actualiza la cantidad de un ítem de carrito.
 DELETE /api/cart/items/:id
 Elimina un ítem del carrito.
 
+
 ### 8.2 Conversión de carrito a pedido (checkout)
 
 POST /api/cart/checkout
@@ -519,6 +523,7 @@ Los totales calculados (subtotal, shipping_cost, tax_total, grand_total).
 
 Este endpoint también crea un registro en payments con status = 'pending', listo para ser “pagado” mediante la simulación de pago desde el perfil.
 
+
 ### 8.3 Pagos
 
 La tabla payments registra métodos (card, transfer, etc.), monto y estado del pago.
@@ -526,6 +531,7 @@ La tabla payments registra métodos (card, transfer, etc.), monto y estado del p
 El endpoint POST /api/payments/:orderId/simulate marca el pago como paid y actualiza el pedido a paid.
 
 Esto permite probar el flujo completo sin integrar una pasarela real (Stripe, PayPal, etc.).
+
 
 ### 8.4 Envíos
 
@@ -545,12 +551,14 @@ El cliente puede ver el estado de envío de cada pedido desde el perfil.
 
 El admin puede crear o actualizar la información de envío desde /admin/orders mediante la API /api/admin/orders/:id/shipment.
 
+
 ## 9. Información del repositorio Git
 
 Nombre del repositorio: raiceschiapanecas
 
 URL del repositorio:
 https://github.com/MarioGaPe-T/raiceschiapanecas.git
+
 
 ## 10. Archivos ignorados en Git
 
